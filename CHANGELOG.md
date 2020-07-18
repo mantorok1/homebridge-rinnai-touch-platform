@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.1 (2020-07-19)
+
+* [FIX] Fix retain option for MQTT publish
+
 ## 3.0.0 (2020-07-19)
 
 * New name: homebridge-rinnai-touch-platform

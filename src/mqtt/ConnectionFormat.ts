@@ -70,7 +70,7 @@ export class ConnectionFormat implements IMqttFormat {
         return;
       }
       this.topicPayload = payload;
-      await this.client.publish(topic, payload);
+      await this.client.publish(topic, payload, {retain: true});
       this.platform.log.info(`MQTT: Publish: ${topic}, Payload: ${payload}`);
     } catch (error) {
       this.platform.log.error(error);

@@ -394,7 +394,7 @@ export class HomeAssistantFormat implements IMqttFormat {
         return;
       }
       this.topicPayloads.set(topic, payload);
-      await this.client.publish(`${this.prefix}${topic}`, payload);
+      await this.client.publish(`${this.prefix}${topic}`, payload, {retain: true});
       this.platform.log.info(`MQTT: Publish: ${this.prefix}${topic}, Payload: ${payload}`);
     } catch (error) {
       this.platform.log.error(error);

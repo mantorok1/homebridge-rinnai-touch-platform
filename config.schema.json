@@ -1,16 +1,277 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "RinnaiTouchPlatform",
   "pluginType": "platform",
   "singular": true,
+  "headerDisplay": "Rinnai Touch Platform Configuration Options",
+  "footerDisplay": "For more information see https://github.com/mantorok1/homebridge-rinnai-touch-platform#readme",
   "schema": {
     "type": "object",
     "properties": {
       "name": {
         "title": "Name",
         "type": "string",
+        "placeholder": "Rinnai Touch",
+        "required": false
+      },
+      "address": {
+        "title": "IP Address",
+        "description": "(leave blank for automatic discovery)",
+        "type": "string",
+        "format": "ipv4"
+      },
+      "port": {
+        "title": "Port",
+        "type": "number",
+        "placeholder": 27847,
+        "minimum": 0,
+        "maximum": 65535
+      },
+      "controllerType": {
+        "title": "Controller Accessory Type",
+        "description": "",
+        "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "T",
+        "oneOf":  [
+          { "title": "Thermostat", "enum": [ "T" ] },
+          { "title": "Heater Cooler", "enum": [ "H" ] }
+        ]
+      },
+      "zoneType": {
+        "title": "Zone Accessory Type",
+        "description": "",
+        "type": "string",
+        "required": true,
+        "default": "S",
+        "oneOf":  [
+          { "title": "None", "enum": [ "N" ] },
+          { "title": "Switch", "enum": [ "S" ] },
+          { "title": "Heater Cooler", "enum": [ "H" ] }
+        ]
+      },
+      "showFan": {
+        "title": "Show 'Fan' accessory",
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
+      "showAuto": {
+        "title": "Show 'AUTO' option in Thermostat/Heater Cooler",
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
+      "showAdvanceSwitches": {
+        "title": "Show 'Advance Period' switch accessory(ies)",
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
+      "showManualSwitches": {
+        "title": "Show 'Manual' switch accessory(ies)",
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
+      "closeConnectionDelay": {
+        "title": "Close Connection Delay (ms)",
+        "type": "number",
+        "placeholder": 1100,
+        "minimum": 0,
+        "maximum": 10000
+      },
+      "connectionTimeout": {
+        "title": "Connection Timeout (ms)",
+        "description": "(-1 = never close, 0 = close immediately)",
+        "type": "number",
+        "placeholder": 5000,
+        "minimum": -1,
+        "maximum": 300000
+      },
+      "clearCache": {
+        "title": "Clear plugin's accessory cache",
+        "type": "boolean",
+        "default": false,
+        "required": false
+      },
+      "mqtt": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "title": "Host Name",
+            "type": "string",
+            "placeholder": "mqtt://localhost"
+          },
+          "port": {
+            "title": "Port",
+            "type": "number",
+            "placeholder": 1883,
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "topicPrefix": {
+            "title": "Topic Prefix",
+            "type": "string"
+          },
+          "formatNative": {
+            "title": "Native Rinnai Touch",
+            "type": "boolean"
+          },
+          "formatHomeAssistant": {
+            "title": "Home Assistant",
+            "type": "boolean"
+          },
+          "formatConnection": {
+            "title": "Module Connection",
+            "type": "boolean"
+          },
+          "publishStatusChanged": {
+            "title": "When status has changed",
+            "type": "boolean"
+          },
+          "publishIntervals": {
+            "title": "At regular intervals",
+            "type": "boolean"
+          },
+          "publishFrequency": {
+            "title": "Publish Frequency (secs)",
+            "type": "number",
+            "placeholder": 60,
+            "minimum": 1,
+            "maximum": 86400
+          },
+          "subscribeTemperature": {
+            "type": "object",
+            "properties": {
+              "U": {
+                "type": "string",
+                "title": "Zone U (Common) Topic"
+              },
+              "A": {
+                "type": "string",
+                "title": "Zone A Topic"
+              },
+              "B": {
+                "type": "string",
+                "title": "Zone B Topic"
+              },
+              "C": {
+                "type": "string",
+                "title": "Zone C Topic"
+              },
+              "D": {
+                "type": "string",
+                "title": "Zone D Topic"
+              }
+            }
+          }
+        }
       }
     }
-  }
+  },
+  "layout": [
+    "name",
+    {
+      "type": "flex",
+      "flex-flow": "row wrap",
+      "items": [ "address", "port" ] 
+    },
+    {
+      "type": "fieldset",
+      "title": "Accessory Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "row wrap",
+          "items": [ "controllerType", "zoneType" ]          
+        },
+        "showFan",
+        "showAuto",
+        "showAdvanceSwitches",
+        "showManualSwitches"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "MQTT Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "row wrap",
+          "items": [ "mqtt.host", "mqtt.port" ] 
+        },
+        {
+          "type": "flex",
+          "flex-flow": "row wrap",
+          "items": [ "mqtt.username", "mqtt.password" ] 
+        },
+        {
+          "type": "flex",
+          "flex-flow": "row wrap",
+          "items": [ "mqtt.topicPrefix" ] 
+        },
+        {
+          "type": "section",
+          "title": "Select message format(s):",
+          "expandable": false,
+          "expanded": true,
+          "items": [
+            "mqtt.formatNative",
+            "mqtt.formatHomeAssistant",
+            "mqtt.formatConnection"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Select publish event(s):",
+          "expandable": false,
+          "expanded": true,
+          "items": [
+            "mqtt.publishStatusChanged",
+            "mqtt.publishIntervals",
+            "mqtt.publishFrequency"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Current Temperature Subscription",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "mqtt.subscribeTemperature.U",
+            "mqtt.subscribeTemperature.A",
+            "mqtt.subscribeTemperature.B",
+            "mqtt.subscribeTemperature.C",
+            "mqtt.subscribeTemperature.D"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Advanced Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "row wrap",
+          "items": [ "closeConnectionDelay", "connectionTimeout" ] 
+        },
+        "clearCache"
+      ]
+    }
+  ]
 }

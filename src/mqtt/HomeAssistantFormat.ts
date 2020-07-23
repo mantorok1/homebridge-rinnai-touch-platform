@@ -232,6 +232,8 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publishTopics');
 
     try {
+      await this.platform.service.updateStates();
+
       this.publishHvacAction();
       this.publishHvacCurrentTemperature();
       this.publishHvacFanMode();
@@ -241,7 +243,6 @@ export class HomeAssistantFormat implements IMqttFormat {
       this.publishSwitchMode();
       this.publishSwitchFan();
       this.publishSwitchManual();
-
     } catch (error) {
       this.platform.log.error(error);
     }

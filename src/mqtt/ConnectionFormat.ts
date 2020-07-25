@@ -46,18 +46,9 @@ export class ConnectionFormat implements IMqttFormat {
   private publishStatus() {
     this.platform.log.debug(this.constructor.name, 'publishStatus');
 
-    let payload: string;
-    switch(this.platform.queue.connectionState) {
-      case ConnectionStates.Open:
-        payload = 'open';
-        break;
-      case ConnectionStates.Error:
-        payload = 'error';
-        break;
-      default:
-        payload = 'closed';
-        break;
-    }
+    const payload: string = this.platform.queue.connectionState === ConnectionStates.Error
+      ? 'error'
+      : 'ok';
 
     this.publish(this.pubTopic, payload);
   }

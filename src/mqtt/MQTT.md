@@ -46,7 +46,7 @@ where U is the common zone (if applicable)
 
 |Topic|Type|Payload|
 |-|-|-|
-|`connection/status/get`|Publish|Current TCP Connection status to the WiFi module. States can be `open`, `closed` or `error`|
+|`connection/status/get`|Publish|Current TCP Connection status to the WiFi module. States can be `ok` or `error`|
 
 ## Current Temperature Subscription
 

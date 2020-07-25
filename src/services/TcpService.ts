@@ -59,8 +59,12 @@ export class TcpService extends events.EventEmitter {
         });
 
         this.socket.on('timeout', () => {
-          this.platform.log.info('TCP Connection: Timed out');
-          this.emit('timeout');
+          this.address = undefined;
+          if (this.socket) {
+            this.socket.removeAllListeners();
+            this.socket = undefined;
+          }
+          reject(new Error('TCP Connection timed out'));
         });
 
         if (!this.address) {

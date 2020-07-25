@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.3 (2020-07-24)
+
+* MQTT Connection format: combine `open` and `closed` states into single `ok` state
+* Improved TCP connection handling
+* Update dependencies
+
 ## 3.0.2 (2020-07-23)
 
 * [FIX] Home Assistant Interval publishing not working

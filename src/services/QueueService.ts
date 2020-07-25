@@ -9,7 +9,6 @@ export enum ConnectionStates {
   Open,
   Closing,
   Closed,
-  Timeout,
   Error,
 }
 
@@ -58,13 +57,6 @@ export class QueueService extends events.EventEmitter {
     this.timestamp = 0;
     this.sequenceNumber = 0;
     this.previousStatus = '';
-
-    if (settings.connectionTimeout < 0) {
-      this.tcp.on('timeout', () => {
-        this.connectionState = ConnectionStates.Timeout;
-        this.execute({ type: RequestTypes.Get });
-      });
-    }
 
     this.queue = cq()
       .limit({ concurrency: 1 })
@@ -118,9 +110,8 @@ export class QueueService extends events.EventEmitter {
       } else if (this.connectionState === ConnectionStates.Closing) {
         await this.connectionClosed();
       }
-      if (this.connectionState === ConnectionStates.Closed) {
+      if (this.connectionState === ConnectionStates.Closed || this.connectionState === ConnectionStates.Error) {
         await this.connect();
-        this.connectionState = ConnectionStates.Open;
       }
 
       // Wait for new status to be emitted from tcp
@@ -155,17 +146,22 @@ export class QueueService extends events.EventEmitter {
   async connect(): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'connect');
 
-    for (let i = 1; i <= 3; i++) {
-      try {
-        await this.tcp.connect();
-        return;
-      } catch (error) {
-        this.platform.log.warn(`TCP Connection: Failed. ${error.message}. Attempt ${i} of 3`);
-        await this.delay(500);
+    while (this.connectionState !== ConnectionStates.Open) {
+      for (let i = 1; i <= 3; i++) {
+        try {
+          await this.tcp.connect();
+          this.connectionState = ConnectionStates.Open;
+          return;
+        } catch (error) {
+          this.platform.log.warn(`TCP Connection: Failed. ${error.message}. Attempt ${i} of 3`);
+          await this.delay(500);
+        }
       }
+
+      this.connectionState = ConnectionStates.Error;
+      this.platform.log.warn('Unable to connect to Rinnai Touch Module. Will try again in 1 minute');
+      await this.delay(60000);
     }
-    this.connectionState = ConnectionStates.Error;
-    throw new Error('Unable to connect to Rinnai Touch Module');
   }
 
   getCommand(request: IRequest): string {

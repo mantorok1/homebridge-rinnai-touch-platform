@@ -119,11 +119,11 @@ export class QueueService extends events.EventEmitter {
         const ts: number = this.timestamp;
         for (let i = 0; i < 50; i++) {
           await this.delay(100);
-          if (ts !== this.timestamp) {
+          if (ts !== this.timestamp && this.status !== undefined ) {
             return this.status;
           }
         }
-        throw new Error('Failed to get new status');
+        throw new Error('No valid status received from WiFi module.');
       }
 
       const command: string = this.getCommand(request);
@@ -263,13 +263,20 @@ export class QueueService extends events.EventEmitter {
   dataHandler(message: string): void {
     this.platform.log.debug(this.constructor.name, 'dataHandler', message);
 
-    this.sequenceNumber = parseInt(message.substr(1, 6));
-    this.timestamp = Date.now();
-    const newStatus: string = message.substr(7);
-    if (this.previousStatus !== newStatus) {
-      this.status = JSON.parse(newStatus);
-      this.previousStatus = newStatus;
-      this.emit('status', this.status);
+    try {
+      this.sequenceNumber = parseInt(message.substr(1, 6));
+      this.timestamp = Date.now();
+      const newStatus: string = message.substr(7);
+      if (this.previousStatus !== newStatus) {
+        const status: Status | undefined = JSON.parse(newStatus);
+        if ((status?.length ?? 0) === 2) {
+          this.status = status;
+          this.previousStatus = newStatus;
+          this.emit('status', status);
+        }
+      }
+    } catch(error) {
+      this.platform.log.error(error);
     }
   }
 

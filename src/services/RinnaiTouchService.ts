@@ -47,7 +47,16 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'init');
 
     try {
-      const status: Status = await this.queueService.execute({ type: RequestTypes.Get });
+      let status: Status | undefined;
+
+      while(status === undefined) {
+        try {
+          status = await this.queueService.execute({ type: RequestTypes.Get });
+        } catch {
+          this.platform.log.info('Next attempt in 10 seconds.');
+          await this.queueService.delay(10000);
+        }
+      }
 
       for (const state of ['HasHeater', 'HasCooler', 'HasEvap', 'HasMultiSP']) {
         this.states[state] = this.stateService.getState(state, status) === 'Y';

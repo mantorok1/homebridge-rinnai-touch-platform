@@ -41,7 +41,7 @@ If you currently use the old plugin (ie. `homebridge-rinnai-touch-plugin`) you m
 
     npm uninstall -g homebridge-rinnai-touch-plugin
 
-It is also recommended that you remove the `cachedAccessories` file from the `./homebridge/accessories` folder.
+It is also recommended that you remove the `cachedAccessories` file from the `.homebridge/accessories` folder.
 
 ## Configuration
 

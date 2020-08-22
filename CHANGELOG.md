@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.4 (2020-08-22)
+
+* [FIX] Handle status with missing 2nd element
+* Update dependencies
+
 ## 3.0.3 (2020-07-24)
 
 * MQTT Connection format: combine `open` and `closed` states into single `ok` state

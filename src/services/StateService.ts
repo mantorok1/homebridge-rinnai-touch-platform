@@ -1,5 +1,5 @@
 import { RinnaiTouchPlatform } from '../platform';
-import { Status } from './QueueService';
+import { Status } from '../models/Status';
 
 export class StateService {
   private systemPaths: Record<string, string> = {
@@ -62,22 +62,17 @@ export class StateService {
     this.platform.log.debug(this.constructor.name, 'getState', state, 'status', zone);
 
     if (this.hasMtsp === undefined) {
-      this.hasMtsp = false;
       this.hasMtsp = this.getState('HasMultiSP', status) === 'Y';
     }
 
-    const mode: string = Object.keys(status[1])[0];
-    const path: string | undefined = this.getPath(state, mode, zone);
+    const path: string | undefined = this.getPath(state, status.mode, zone);
     if (path === undefined) {
       return;
     }
 
-    const [group1, group2, cmd]: string[] = path.split('.');
-    const item: number = group1 === 'SYST' ? 0 : 1;
+    const [group1, group2, command]: string[] = path.split('.');
 
-    if (status[item][group1] && status[item][group1][group2] && status[item][group1][group2][cmd]) {
-      return status[item][group1][group2][cmd];
-    }
+    return status.getState(group1, group2, command);
   }
 
   getPath(state: string, mode = '', zone = ''): string | undefined {

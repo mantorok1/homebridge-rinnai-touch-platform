@@ -4,6 +4,9 @@ import cq = require('concurrent-queue');
 import { RinnaiTouchPlatform } from '../platform';
 import { SettingsService } from './SettingsService';
 import { TcpService, IModuleAddress } from './TcpService';
+import { Message } from '../models/Message';
+import { Status } from '../models/Status';
+import { Command } from '../models/Command';
 
 export enum ConnectionStates {
   Open,
@@ -26,9 +29,6 @@ export interface IRequest {
   command?: string;
 }
 
-type Command = Record<string, Record<string, Record<string, string>>>;
-export type Status = Command[];
-
 export class QueueService extends events.EventEmitter {
   private _connectionState: ConnectionStates = ConnectionStates.Closed;
   private address?: IModuleAddress;
@@ -38,7 +38,6 @@ export class QueueService extends events.EventEmitter {
   private timer?: NodeJS.Timeout;
   private status?: Status;
   private sequenceNumber: number;
-  private previousStatus: string;
 
   constructor(
     private readonly platform: RinnaiTouchPlatform,
@@ -53,10 +52,9 @@ export class QueueService extends events.EventEmitter {
     }
 
     this.tcp = new TcpService(this.platform, this.address);
-    this.tcp.on('data', this.dataHandler.bind(this));
+    this.tcp.on('message', this.messageHandler.bind(this));
     this.timestamp = 0;
     this.sequenceNumber = 0;
-    this.previousStatus = '';
 
     this.queue = cq()
       .limit({ concurrency: 1 })
@@ -114,22 +112,25 @@ export class QueueService extends events.EventEmitter {
         await this.connect();
       }
 
-      // Wait for new status to be emitted from tcp
+      // Wait for new status to be emitted from tcp, break out after 4 minutes
       if (request.type === RequestTypes.Get) {
         const ts: number = this.timestamp;
-        for (let i = 0; i < 50; i++) {
+        const startTime: number = Date.now();
+        while (ts === this.timestamp || this.status === undefined) {
           await this.delay(100);
-          if (ts !== this.timestamp && this.status !== undefined ) {
-            return this.status;
+          if (Date.now() - startTime > 240000) {
+            this.status = undefined;
+            break;
           }
         }
-        throw new Error('No valid status received from WiFi module.');
+        return this.status;
       }
 
-      const command: string = this.getCommand(request);
-      this.platform.log.info(`Sending Command: ${command}`);
+      const command = new Command(this.sequenceNumber, request.path, request.state, request.command);
+
+      this.platform.log.info(`Sending Command: ${command.toString()}`);
       for (let i = 1; i <= 3; i++) {
-        await this.tcp.write(command);
+        await this.tcp.write(command.toString());
 
         const success: boolean = await this.commandSucceeded(command);
         if (success) {
@@ -180,15 +181,8 @@ export class QueueService extends events.EventEmitter {
     return `N${sequenceNumber}${request.command}`;
   }
 
-  commandSucceeded(command: string): Promise<boolean> {
-    this.platform.log.debug(this.constructor.name, 'commandSucceeded', command);
-
-    const json: Command = JSON.parse(command.substr(7));
-    const group1: string = Object.keys(json)[0];
-    const group2: string = Object.keys(json[group1])[0];
-    const cmd: string = Object.keys(json[group1][group2])[0];
-    const state = json[group1][group2][cmd];
-    const item: number = group1 === 'SYST' ? 0 : 1;
+  commandSucceeded(command: Command): Promise<boolean> {
+    this.platform.log.debug(this.constructor.name, 'commandSucceeded', command.toString());
 
     let checkStatus: (status: Status) => void;
 
@@ -202,11 +196,7 @@ export class QueueService extends events.EventEmitter {
         }, 10000);
 
         checkStatus = (status: Status) => {
-          if (status[item][group1] === undefined || status[item][group1][group2] === undefined) {
-            return;
-          }
-
-          if (status[item][group1][group2][cmd] === state) {
+          if (status.hasState(command.group1, command.group2, command.command, command.state)) {
             clearTimeout(timer);
             this.platform.log.info(`Command succeeded. Took ${Date.now() - startTime} ms`);
             this.off('status', checkStatus);
@@ -260,23 +250,16 @@ export class QueueService extends events.EventEmitter {
     }
   }
 
-  dataHandler(message: string): void {
-    this.platform.log.debug(this.constructor.name, 'dataHandler', message);
+  messageHandler(message: Message): void {
+    this.platform.log.debug(this.constructor.name, 'messageHandler', message.toString());
 
-    try {
-      this.sequenceNumber = parseInt(message.substr(1, 6));
+    if (message.isValid && message.status?.isValid) {
+      this.sequenceNumber = <number>message.sequence;
       this.timestamp = Date.now();
-      const newStatus: string = message.substr(7);
-      if (this.previousStatus !== newStatus) {
-        const status: Status | undefined = JSON.parse(newStatus);
-        if ((status?.length ?? 0) === 2) {
-          this.status = status;
-          this.previousStatus = newStatus;
-          this.emit('status', status);
-        }
+      if (!message.status?.equals(this.status)) {
+        this.status = message.status;
+        this.emit('status', this.status);
       }
-    } catch(error) {
-      this.platform.log.error(error);
     }
   }
 

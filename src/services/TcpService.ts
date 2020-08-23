@@ -3,6 +3,7 @@ import events = require('events');
 
 import { RinnaiTouchPlatform } from '../platform';
 import { UdpService, IModuleAddress } from './UdpService';
+import { Message } from '../models/Message';
 
 export { IModuleAddress };
 
@@ -37,10 +38,9 @@ export class TcpService extends events.EventEmitter {
         this.socket = new net.Socket();
 
         this.socket.on('data', (data: Buffer) => {
-          const packet: string = data.toString();
-          if (packet.substr(0, 1) === 'N') {
-            const from: number = data.lastIndexOf('[') - 7;
-            this.emit('data', packet.substr(from));
+          const message: Message = new Message(data);
+          if (message.isValid) {
+            this.emit('message', message);
             resolve();
           }
         });

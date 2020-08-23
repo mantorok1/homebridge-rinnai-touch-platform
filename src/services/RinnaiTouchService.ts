@@ -1,8 +1,9 @@
 import events = require('events');
 
 import { RinnaiTouchPlatform } from '../platform';
-import { QueueService, IRequest, RequestTypes, Status } from './QueueService';
+import { QueueService, IRequest, RequestTypes } from './QueueService';
 import { StateService } from './StateService';
+import { Status } from '../models/Status';
 
 export enum Modes {
   HEAT, COOL, EVAP,
@@ -47,15 +48,9 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'init');
 
     try {
-      let status: Status | undefined;
-
-      while(status === undefined) {
-        try {
-          status = await this.queueService.execute({ type: RequestTypes.Get });
-        } catch {
-          this.platform.log.info('Next attempt in 10 seconds.');
-          await this.queueService.delay(10000);
-        }
+      const status = await this.queueService.execute({ type: RequestTypes.Get });
+      if (status === undefined) {
+        throw new Error('Unable to obtain a valid status from the Rinnai Touch module');
       }
 
       for (const state of ['HasHeater', 'HasCooler', 'HasEvap', 'HasMultiSP']) {

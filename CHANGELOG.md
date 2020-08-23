@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.5 (2020-08-23)
+
+* Impoved handling of invalid status returned from module
+* Minor code refactor
+
 ## 3.0.4 (2020-08-22)
 
 * [FIX] Handle status with missing 2nd element

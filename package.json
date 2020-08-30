@@ -1,7 +1,7 @@
 {
   "displayName": "Rinnai Touch Platform",
   "name": "homebridge-rinnai-touch-platform",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "Homebridge Plugin to control heating/cooling via a Rinnai Touch WiFi Module",
   "license": "Apache-2.0",
   "repository": {
@@ -17,8 +17,8 @@
   },
   "main": "dist/index.js",
   "funding": {
-    "type" : "paypal",
-    "url" : "https://paypal.me/Mantorok1"
+    "type": "paypal",
+    "url": "https://paypal.me/Mantorok1"
   },
   "scripts": {
     "lint": "eslint src/**.ts",

@@ -37,7 +37,7 @@ export class Message {
   }
 
   get isValid(): boolean {
-    return this._sequence !== undefined && this._sequence !== 0 && this._status !== undefined;
+    return this._sequence !== undefined && this._status !== undefined;
   }
 
   toString(): string {

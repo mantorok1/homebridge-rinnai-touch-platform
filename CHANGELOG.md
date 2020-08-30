@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.6 (2020-08-31)
+
+* [FIX] TCP socket not closed after an exception or timeout occurs
+* [FIX] Allow status which has a sequence number of 0
+* Add funding attribute to package.json
+* Update dependencies
+
 ## 3.0.5 (2020-08-23)
 
 * Impoved handling of invalid status returned from module

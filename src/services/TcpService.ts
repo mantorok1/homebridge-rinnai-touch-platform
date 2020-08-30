@@ -46,11 +46,7 @@ export class TcpService extends events.EventEmitter {
         });
 
         this.socket.on('error', (error: Error) => {
-          this.address = undefined;
-          if (this.socket) {
-            this.socket.removeAllListeners();
-            this.socket = undefined;
-          }
+          this.closeSocket(true);
           reject(error);
         });
 
@@ -59,11 +55,7 @@ export class TcpService extends events.EventEmitter {
         });
 
         this.socket.on('timeout', () => {
-          this.address = undefined;
-          if (this.socket) {
-            this.socket.removeAllListeners();
-            this.socket = undefined;
-          }
+          this.closeSocket(true);
           reject(new Error('TCP Connection timed out'));
         });
 
@@ -75,23 +67,31 @@ export class TcpService extends events.EventEmitter {
         this.socket.connect(this.address.port, this.address.address);
         this.socket.setTimeout(5000);
       } catch (error) {
-        this.address = undefined;
-        if (this.socket) {
-          this.socket.removeAllListeners();
-          this.socket = undefined;
-        }
+        this.closeSocket(true);
         reject(error);
       }
     });
+  }
+
+  closeSocket(clearAddress: boolean) {
+    this.platform.log.debug(this.constructor.name, 'closeSocket');
+
+    if (clearAddress) {
+      this.address = undefined;
+    }
+
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.destroy();
+      this.socket = undefined;
+    }
   }
 
   destroy(): void {
     this.platform.log.debug(this.constructor.name, 'destroy');
 
     if (this.socket) {
-      this.socket.removeAllListeners();
-      this.socket.destroy();
-      this.socket = undefined;
+      this.closeSocket(false);
       this.platform.log.info('TCP Connection: Closed');
     }
   }

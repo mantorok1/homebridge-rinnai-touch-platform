@@ -32,9 +32,7 @@ export abstract class AccessoryBase {
   setEventHandlers(): void {
     this.platform.log.debug('AccessoryBase', 'setEventHandlers');
 
-    this.platform.service.on('updated', () => {
-      this.updateValues();
-    });
+    this.platform.service.on('updated', this.updateValues.bind(this));
   }
 
   async getCharacteristicValue(

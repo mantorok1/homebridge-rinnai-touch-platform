@@ -218,14 +218,4 @@ export class AccessoryService {
 
     return zone ? `${name}_${zone}` : name;
   }
-
-  clearAccessories(): void {
-    this.platform.log.debug(this.constructor.name, 'clearAccessories');
-
-    const accessories: PlatformAccessory[] =
-      [...this.accessories.values()].map((acc) => acc.platformAccessory);
-    
-    this.platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, accessories);
-    this.accessories.clear();
-  }
 }

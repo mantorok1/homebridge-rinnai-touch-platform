@@ -391,7 +391,7 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publish', topic, payload);
 
     try {
-      if (payload === this.topicPayloads.get(topic)) {
+      if (payload === this.topicPayloads.get(topic) && !this.platform.settings.mqtt.publishAll) {
         return;
       }
       this.topicPayloads.set(topic, payload);

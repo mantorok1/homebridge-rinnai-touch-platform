@@ -37,6 +37,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     private readonly queueService: QueueService,
   ) {
     super();
+    this.setMaxListeners(20);
     this.stateService = new StateService(platform);
 
     this.ModeMap.set(Modes.HEAT, 'HGOM');

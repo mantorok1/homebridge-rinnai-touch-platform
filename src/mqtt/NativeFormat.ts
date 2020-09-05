@@ -65,7 +65,7 @@ export class NativeFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publish', topic, payload);
 
     try {
-      if (payload === this.topicPayload) {
+      if (payload === this.topicPayload && !this.platform.settings.mqtt.publishAll) {
         return;
       }
       this.topicPayload = payload;

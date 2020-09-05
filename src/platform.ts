@@ -1,4 +1,5 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { SettingsService } from './services/SettingsService';
 import { QueueService } from './services/QueueService';
 import { RinnaiTouchService } from './services/RinnaiTouchService';
@@ -6,6 +7,8 @@ import { AccessoryService } from './accessories/AccessoryService';
 import { MqttService } from './mqtt/MqttService';
 
 export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
+  private deletedAccessories: PlatformAccessory[] = [];
+
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
@@ -43,6 +46,11 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   configureAccessory(platformAccessory: PlatformAccessory) {
     this.log.debug(this.constructor.name, 'configureAccessory');
 
+    if (this.settings.clearCache) {
+      this.deletedAccessories.push(platformAccessory);
+      return;
+    }
+
     this.accessoryService.configure(platformAccessory);
   }
 
@@ -52,7 +60,9 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
 
       // Clear cached accessories if required
       if (this.settings.clearCache) {
-        this.accessoryService.clearAccessories();
+        this.log.info('Clear Cached Accessories');
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, this.deletedAccessories);
+        this.deletedAccessories = [];
       }
 
       await this.service.init();

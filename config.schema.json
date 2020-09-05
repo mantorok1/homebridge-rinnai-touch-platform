@@ -148,6 +148,10 @@
             "minimum": 1,
             "maximum": 86400
           },
+          "publishAll": {
+            "title": "Publish all topics even if payload has not changed",
+            "type": "boolean"              
+          },
           "subscribeTemperature": {
             "type": "object",
             "properties": {
@@ -241,7 +245,8 @@
           "items": [
             "mqtt.publishStatusChanged",
             "mqtt.publishIntervals",
-            "mqtt.publishFrequency"
+            "mqtt.publishFrequency",
+            "mqtt.publishAll"
           ]
         },
         {

@@ -69,6 +69,7 @@ This section describes the configuration options for the plugin to operate as an
         "publishStatusChanged": false,
         "publishIntervals": true,
         "publishFrequency": 60,
+        "publishAll": false, 
         "subscribeTemperature": {
             "U": "temp/u",
             "A": "temp/a",
@@ -90,6 +91,7 @@ This section describes the configuration options for the plugin to operate as an
 |`publishStatusChanged`|Publish when status has changed|`false`|
 |`publishIntervals`|Publish at regular intervals|`false`|
 |`publishFrequency`|Publish frequency (secs)|`60`|
+|`publishAll`|Publish all topics even if payload has not changed|`false`|
 |`subscribeTemperature`|Defines the topics the plugin subscribes to for receiving temeprature payloads||
 
 #### subscriptTemeprature settings:

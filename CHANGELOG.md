@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.7 (2020-09-05)
+
+* Add new MQTT option to publish topics even if the payload has not changed
+* [FIX] Clearing accessory cache can cause MaxListenersExceededWarning
+* Add badges to README
+* Update dependencies
+
 ## 3.0.6 (2020-08-31)
 
 * [FIX] TCP socket not closed after an exception or timeout occurs

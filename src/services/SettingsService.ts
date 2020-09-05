@@ -50,6 +50,7 @@ export class SettingsService {
         publishStatusChanged: config.publishStatusChanged ?? false,
         publishIntervals: config.publishIntervals ?? false,
         publishFrequency: config.publishFrequency ?? 60,
+        publishAll: config.publishAll ?? false,
         subscribeTemperature: config.subscribeTemperature ?? false,
       };
     }

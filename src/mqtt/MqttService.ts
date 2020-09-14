@@ -92,7 +92,18 @@ export class MqttService {
       password: <string | undefined>this.settings.password,
     };
 
-    this.client = await mqtt.connectAsync(url, options);
+    let connected = false;
+    while(!connected) {
+      try {
+        this.client = await mqtt.connectAsync(url, options);
+        connected = true;
+      } catch(error) {
+        this.platform.log.warn(`Failed to connect to MQTT broker. Error: ${error.message}`);
+        this.platform.log.warn('Will try again in 1 minute');
+        await this.delay(60000);
+      }
+    }
+
     this.platform.log.info(`MQTT: Broker connected [${url}]`);
   }
 
@@ -104,5 +115,11 @@ export class MqttService {
       await this.client.subscribe(topic);
       this.topicMap.set(topic, format);
     }
+  }
+
+  private async delay(ms: number): Promise<void> {
+    await new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 }

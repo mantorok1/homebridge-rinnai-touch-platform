@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.8 (2020-09-14)
+
+* Retry MQTT broker connection until successful.
+* Update dependencies
+
 ## 3.0.7 (2020-09-05)
 
 * Add new MQTT option to publish topics even if the payload has not changed

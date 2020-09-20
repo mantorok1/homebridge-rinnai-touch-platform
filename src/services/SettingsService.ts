@@ -14,8 +14,8 @@ export class SettingsService {
       address: config.address,
       port: config.port,
 
-      controllerType: config.controllerType?.substr(0, 1).toUpperCase() ?? 'T',
-      zoneType: config.zoneType?.substr(0, 1).toUpperCase() ?? 'S',
+      controllerType: (<string | undefined>config.controllerType)?.substr(0, 1).toUpperCase() ?? 'T',
+      zoneType: (<string | undefined>config.zoneType)?.substr(0, 1).toUpperCase() ?? 'S',
       showFan: config.showFan ?? true,
       showAuto: config.showAuto ?? true,
       showAdvanceSwitches: config.showAdvanceSwitches ?? true,
@@ -23,13 +23,13 @@ export class SettingsService {
 
       closeConnectionDelay: config.closeConnectionDelay === undefined
         ? 1100
-        : Math.min(config.closeConnectionDelay, 10000),
+        : Math.min(<number>config.closeConnectionDelay, 10000),
       connectionTimeout: config.connectionTimeout === undefined
         ? 5000
-        : Math.min(config.connectionTimeout, 300000),
+        : Math.min(<number>config.connectionTimeout, 300000),
       clearCache: config.clearCache ?? false,
 
-      mqtt: this._getMqttSettings(config.mqtt),
+      mqtt: this._getMqttSettings(<Record<string, unknown>>config.mqtt),
     };
   }
 

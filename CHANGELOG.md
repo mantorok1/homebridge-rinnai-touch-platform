@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.9 (2020-09-20)
+
+* Update dependencies, one of which had a high severity vulnerability
+
 ## 3.0.8 (2020-09-14)
 
 * Retry MQTT broker connection until successful.

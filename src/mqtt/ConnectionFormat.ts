@@ -2,24 +2,24 @@ import mqtt = require('async-mqtt');
 
 import { RinnaiTouchPlatform } from '../platform';
 import { IMqttFormat } from './MqttService';
-import { ConnectionStates } from '../services/QueueService';
 
 export class ConnectionFormat implements IMqttFormat {
   private readonly pubTopic: string;
   private topicPayload: string | undefined;
+  private connected = false;
 
   constructor(
     private readonly platform: RinnaiTouchPlatform,
     private readonly client: mqtt.AsyncMqttClient,
   ) {
-    const prefix: string = this.platform.settings.mqtt.topicPrefix
-      ? `${this.platform.settings.mqtt.topicPrefix}/`
+    const prefix: string = this.platform.settings.mqtt!.topicPrefix
+      ? `${this.platform.settings.mqtt!.topicPrefix}/`
       : '';
     this.pubTopic = `${prefix}connection/status/get`;
 
     // Publish on status change
-    if (this.platform.settings.mqtt.publishStatusChanged) {
-      this.platform.queue.on('connection', () => {
+    if (this.platform.settings.mqtt!.publishStatusChanged) {
+      this.platform.session.on('connection', () => {
         this.publishStatus();
       });
     }
@@ -46,9 +46,14 @@ export class ConnectionFormat implements IMqttFormat {
   private publishStatus() {
     this.platform.log.debug(this.constructor.name, 'publishStatus');
 
-    const payload: string = this.platform.queue.connectionState === ConnectionStates.Error
-      ? 'error'
-      : 'ok';
+    if (this.connected === this.platform.session.isConnected) {
+      return;
+    }
+
+    this.connected = this.platform.session.isConnected;
+    const payload: string = this.connected
+      ? 'ok'
+      : 'error';
 
     this.publish(this.pubTopic, payload);
   }
@@ -57,12 +62,14 @@ export class ConnectionFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publish', topic, payload);
 
     try {
-      if (payload === this.topicPayload && !this.platform.settings.mqtt.publishAll) {
+      if (payload === this.topicPayload && !this.platform.settings.mqtt!.publishAll) {
         return;
       }
       this.topicPayload = payload;
       await this.client.publish(topic, payload, {retain: true});
-      this.platform.log.info(`MQTT: Publish: ${topic}, Payload: ${payload}`);
+      if (this.platform.settings.mqtt!.showMqttEvents) {
+        this.platform.log.info(`MQTT: Publish: ${topic}, Payload: ${payload}`);
+      }
     } catch (error) {
       this.platform.log.error(error);
     }

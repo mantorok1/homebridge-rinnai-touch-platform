@@ -1,8 +1,8 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { SettingsService } from './services/SettingsService';
-import { QueueService } from './services/QueueService';
-import { RinnaiTouchService } from './services/RinnaiTouchService';
+import { Settings } from './models/Settings';
+import { RinnaiSession } from './rinnai/RinnaiSession';
+import { RinnaiService } from './rinnai/RinnaiService';
 import { AccessoryService } from './accessories/AccessoryService';
 import { MqttService } from './mqtt/MqttService';
 
@@ -12,9 +12,9 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
-  public readonly settings!: SettingsService;
-  public readonly queue!: QueueService;
-  public readonly service!: RinnaiTouchService;
+  public readonly settings!: Settings;
+  public readonly session!: RinnaiSession;
+  public readonly service!: RinnaiService;
   public readonly accessoryService!: AccessoryService;
   public readonly mqttService!: MqttService;
 
@@ -24,9 +24,9 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
     public readonly api: API,
   ) {
     try {
-      this.settings = new SettingsService(config);
-      this.queue = new QueueService(this, this.settings);
-      this.service = new RinnaiTouchService(this, this.queue);
+      this.settings = new Settings(config);
+      this.session = new RinnaiSession(this);
+      this.service = new RinnaiService(this);
       this.accessoryService = new AccessoryService(this);
       this.mqttService = new MqttService(this);
 
@@ -36,7 +36,7 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
 
       this.api.on('shutdown', () => {
         this.log.info('Shutting down plugin');
-        this.queue.closeConnection();
+        this.session.stop();
       });
     } catch(error) {
       log.error(error);
@@ -64,6 +64,8 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
         this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, this.deletedAccessories);
         this.deletedAccessories = [];
       }
+
+      await this.session.start();
 
       await this.service.init();
 

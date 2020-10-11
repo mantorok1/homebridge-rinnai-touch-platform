@@ -2,7 +2,7 @@ import mqtt = require('async-mqtt');
 
 import { RinnaiTouchPlatform } from '../platform';
 import { IMqttFormat } from './MqttService';
-import { Modes, ControlModes } from '../services/RinnaiTouchService';
+import { Modes, ControlModes } from '../rinnai/RinnaiService';
 
 export class HomeAssistantFormat implements IMqttFormat {
   private readonly subTopics: Map<string, (topic: string, payload: string) => Promise<void>> = new Map();
@@ -13,8 +13,8 @@ export class HomeAssistantFormat implements IMqttFormat {
     private readonly platform: RinnaiTouchPlatform,
     private readonly client: mqtt.AsyncMqttClient,
   ) {
-    this.prefix = this.platform.settings.mqtt.topicPrefix
-      ? `${this.platform.settings.mqtt.topicPrefix}/`
+    this.prefix = this.platform.settings.mqtt!.topicPrefix
+      ? `${this.platform.settings.mqtt!.topicPrefix}/`
       : '';
 
     this.subTopics
@@ -36,7 +36,7 @@ export class HomeAssistantFormat implements IMqttFormat {
       .set(`${this.prefix}switch/manual/d/set`, this.setSwitchManual.bind(this));
 
     // Publish on status change
-    if (this.platform.settings.mqtt.publishStatusChanged) {
+    if (this.platform.settings.mqtt!.publishStatusChanged) {
       this.platform.service.on('updated', () => {
         this.publishTopics();
       });
@@ -64,6 +64,11 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'setFanMode', topic, payload);
 
     try {
+      if (!this.platform.service.getFanState()) {
+        this.platform.log.warn('MQTT: Setting fan mode only supported for "fan_only" mode');
+        return;
+      }
+
       let fanSpeed: number;
       switch(payload) {
         case 'low':
@@ -122,6 +127,11 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'setTemperature', topic, payload);
 
     try {
+      if (!this.platform.service.getState() || this.platform.service.getFanState()) {
+        this.platform.log.warn('MQTT: Setting temperature only supported for "heat" and "cool" modes');
+        return;
+      }
+
       const json: Record<string, number> | number = JSON.parse(payload);
       if (typeof json === 'object') {
         for (const zone in json) {
@@ -208,6 +218,11 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'setControlMode', topic, payload);
 
     try {
+      if (!this.platform.service.getState() && !this.platform.service.getFanState()) {
+        this.platform.log.warn('MQTT: Setting manual operation not supported for "off" mode');
+        return;
+      }
+
       let zone: string = this.getTopicComponent(topic, -2).toUpperCase();
       zone = zone.length !== 1 ? 'U' : zone;
       const state: ControlModes = payload.toLowerCase() === 'on'
@@ -232,7 +247,7 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publishTopics');
 
     try {
-      await this.platform.service.updateStates();
+      this.platform.service.updateStates();
 
       this.publishHvacAction();
       this.publishHvacCurrentTemperature();
@@ -391,12 +406,14 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publish', topic, payload);
 
     try {
-      if (payload === this.topicPayloads.get(topic) && !this.platform.settings.mqtt.publishAll) {
+      if (payload === this.topicPayloads.get(topic) && !this.platform.settings.mqtt!.publishAll) {
         return;
       }
       this.topicPayloads.set(topic, payload);
       await this.client.publish(`${this.prefix}${topic}`, payload, {retain: true});
-      this.platform.log.info(`MQTT: Publish: ${this.prefix}${topic}, Payload: ${payload}`);
+      if (this.platform.settings.mqtt!.showMqttEvents) {
+        this.platform.log.info(`MQTT: Publish: ${this.prefix}${topic}, Payload: ${payload}`);
+      }
     } catch (error) {
       this.platform.log.error(error);
     }

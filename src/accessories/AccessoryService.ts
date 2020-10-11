@@ -13,9 +13,7 @@ import { Pump } from './Pump';
 export class AccessoryService {
   private accessories: Map<string, AccessoryBase> = new Map();
 
-  constructor(
-    private readonly platform: RinnaiTouchPlatform,
-  ) { }
+  constructor(private readonly platform: RinnaiTouchPlatform) { }
 
   discover(): void {
     this.platform.log.debug(this.constructor.name, 'discover');

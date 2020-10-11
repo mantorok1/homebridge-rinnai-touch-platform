@@ -1,6 +1,6 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
-import { ControlModes } from '../services/RinnaiTouchService';
+import { ControlModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
 
 export class ManualSwitch extends AccessoryBase {

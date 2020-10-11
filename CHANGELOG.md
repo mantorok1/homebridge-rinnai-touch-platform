@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.1.0 (2020-10-11)
+
+* TCP/IP connection always open to improve performance and reliability
+* New logging options in settings
+* Remove some redundant settings
+* Prevent some commands via MQTT when invalid
+* [FIX] MQTT Native format not functioning correctly
+* Update dependencies
+
 ## 3.0.9 (2020-09-20)
 
 * Update dependencies, one of which had a high severity vulnerability

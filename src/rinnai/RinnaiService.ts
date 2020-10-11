@@ -1,9 +1,9 @@
 import events = require('events');
 
 import { RinnaiTouchPlatform } from '../platform';
-import { QueueService, IRequest, RequestTypes } from './QueueService';
 import { StateService } from './StateService';
 import { Status } from '../models/Status';
+import { Command } from '../models/Command';
 
 export enum Modes {
   HEAT, COOL, EVAP,
@@ -17,9 +17,8 @@ export enum ScheduleOverrideModes {
   NONE, ADVANCE, OPERATION
 }
 
-export class RinnaiTouchService extends events.EventEmitter {
+export class RinnaiService extends events.EventEmitter {
   private readonly stateService: StateService;
-  private timestamp = 0;
   private previousMode?: Modes;
   public readonly AllZones = ['U', 'A', 'B', 'C', 'D'];
   private readonly ModeMap: Map<Modes, string> = new Map();
@@ -32,10 +31,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     CurrentTemperatureOverride: {},
   };
 
-  constructor(
-    private readonly platform: RinnaiTouchPlatform,
-    private readonly queueService: QueueService,
-  ) {
+  constructor(private readonly platform: RinnaiTouchPlatform) {
     super();
     this.setMaxListeners(20);
     this.stateService = new StateService(platform);
@@ -45,11 +41,15 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.ModeMap.set(Modes.EVAP, 'ECOM');
   }
 
-  async init() {
+  async init(): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'init');
 
     try {
-      const status = await this.queueService.execute({ type: RequestTypes.Get });
+      await new Promise((resolve) => {
+        this.platform.session.once('status', resolve);
+      });
+
+      const status = this.platform.session.getStatus();
       if (status === undefined) {
         throw new Error('Unable to obtain a valid status from the Rinnai Touch module');
       }
@@ -79,9 +79,9 @@ export class RinnaiTouchService extends events.EventEmitter {
         }
       }
 
-      await this.updateStates();
+      this.updateStates();
 
-      this.queueService.on('status', this.updateAll.bind(this));
+      this.platform.session.on('status', this.updateAll.bind(this));
     } catch (error) {
       this.platform.log.error(error);
       throw error;
@@ -177,14 +177,13 @@ export class RinnaiTouchService extends events.EventEmitter {
   //
   // Updaters
   //
-  async updateStates(): Promise<void> {
+  updateStates(): void {
     this.platform.log.debug(this.constructor.name, 'updateStates');
 
     try {
-      const status: Status = await this.queueService.execute({ type: RequestTypes.Get });
-
-      if (Date.now() - this.timestamp < 1000) {
-        return;
+      const status = this.platform.session.getStatus();
+      if (status === undefined) {
+        throw new Error('Unable to obtain a valid status from the Rinnai Touch module');
       }
 
       this.updateAll(status);
@@ -212,8 +211,6 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.updateControlMode(status);
     this.updateScheduleOverride(status);
     this.updatePumpState(status);
-
-    this.timestamp = Date.now();
 
     if (this.previousMode !== this.mode) {
       if (this.previousMode !== undefined) {
@@ -392,7 +389,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setMode', value);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       if (this.mode === value) {
         return;
@@ -412,7 +409,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setState', value);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       if (this.getState() === value) {
         return;
@@ -432,7 +429,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setFanState', value);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       if (this.getFanState() === value) {
         return;
@@ -454,7 +451,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setFanSpeed', value);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       if (this.getFanSpeed() === value) {
         return;
@@ -485,7 +482,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setTargetTemperature', value, zone);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       value = Math.round(value);
       if (this.getTargetTemperature(zone) === value) {
@@ -509,7 +506,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setUserEnabled', value, zone);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       if (this.getUserEnabled(zone) === value) {
         return;
@@ -529,7 +526,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setControlMode', value, zone);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       if (this.getControlMode(zone) === value) {
         return;
@@ -549,7 +546,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setScheduleOverride', value, zone);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       if (this.getScheduleOverride(zone) === value) {
         return;
@@ -580,7 +577,7 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'setPumpState', value);
 
     try {
-      await this.updateStates();
+      this.updateStates();
 
       if (this.getPumpState() === value) {
         return;
@@ -607,18 +604,13 @@ export class RinnaiTouchService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'sendRequest', path, state);
 
     if (path === undefined || state === undefined) {
-      this.platform.log.warn('Invalid request. Cannot send command');
+      this.platform.log.warn('Invalid request. Cannot send');
       return;
     }
 
     try {
-      const request: IRequest = {
-        type: RequestTypes.Set,
-        path: path,
-        state: state,
-      };
-
-      await this.queueService.execute(request);
+      const command = new Command(path, state);
+      await this.platform.session.sendCommand(command);
     } catch (error) {
       this.platform.log.error(error);
     }

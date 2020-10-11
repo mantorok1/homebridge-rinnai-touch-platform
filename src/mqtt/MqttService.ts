@@ -5,6 +5,7 @@ import { NativeFormat } from './NativeFormat';
 import { HomeAssistantFormat } from './HomeAssistantFormat';
 import { ConnectionFormat } from './ConnectionFormat';
 import { TemperatureFormat } from './TemperatureFormat';
+import { MqttSettings } from '../models/Settings';
 
 export interface IMqttFormat {
   subscriptionTopics: string[];
@@ -13,7 +14,7 @@ export interface IMqttFormat {
 }
 
 export class MqttService {
-  private settings: Record<string, unknown>;
+  private settings: MqttSettings;
   private client!: mqtt.AsyncMqttClient;
   private formats: IMqttFormat[] = [];
   private topicMap: Map<string, IMqttFormat> = new Map();
@@ -21,7 +22,7 @@ export class MqttService {
   constructor(
     private readonly platform: RinnaiTouchPlatform,
   ) {
-    this.settings = platform.settings.mqtt;
+    this.settings = platform.settings.mqtt!;
   }
 
   async init(): Promise<void> {
@@ -54,7 +55,9 @@ export class MqttService {
       }
 
       this.client.on('message', (topic, payload) => {
-        this.platform.log.info(`MQTT: Received: ${topic}, Payload: ${payload}`);
+        if (this.platform.settings.mqtt!.showMqttEvents) {
+          this.platform.log.info(`MQTT: Received: ${topic}, Payload: ${payload}`);
+        }
 
         const format: IMqttFormat | undefined = this.topicMap.get(topic);
         if (format) {
@@ -72,7 +75,9 @@ export class MqttService {
       // Publish at intervals
       if (this.settings.publishIntervals) {
         setInterval(async () => {
-          this.platform.log.info('MQTT: Publish Event: Scheduled Interval');
+          if (this.platform.settings.mqtt!.showMqttEvents) {
+            this.platform.log.info('MQTT: Publish Event: Scheduled Interval');
+          }
           for(const format of this.formats) {
             await format.publishTopics();
           }
@@ -111,7 +116,9 @@ export class MqttService {
     this.platform.log.debug(this.constructor.name, 'subscribe', 'format');
 
     for(const topic of format.subscriptionTopics) {
-      this.platform.log.info(`MQTT: Subscribe: ${topic}`);
+      if (this.platform.settings.mqtt!.showMqttEvents) {
+        this.platform.log.info(`MQTT: Subscribe: ${topic}`);
+      }
       await this.client.subscribe(topic);
       this.topicMap.set(topic, format);
     }

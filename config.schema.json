@@ -10,8 +10,8 @@
       "name": {
         "title": "Name",
         "type": "string",
-        "placeholder": "Rinnai Touch",
-        "required": false
+        "default": "Rinnai Touch",
+        "required": true
       },
       "address": {
         "title": "IP Address",
@@ -73,21 +73,18 @@
         "default": true,
         "required": false
       },
-      "closeConnectionDelay": {
-        "title": "Close Connection Delay (ms)",
-        "type": "number",
-        "placeholder": 1100,
-        "minimum": 0,
-        "maximum": 10000
+      "showHomebridgeEvents": {
+        "title": "Show Homebridge events in the log",
+        "type": "boolean",
+        "default": true,
+        "required": false
       },
-      "connectionTimeout": {
-        "title": "Connection Timeout (ms)",
-        "description": "(-1 = never close, 0 = close immediately)",
-        "type": "number",
-        "placeholder": 5000,
-        "minimum": -1,
-        "maximum": 300000
-      },
+      "showModuleEvents": {
+        "title": "Show Rinnai Touch Module events in the log",
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },  
       "clearCache": {
         "title": "Clear plugin's accessory cache",
         "type": "boolean",
@@ -152,6 +149,12 @@
             "title": "Publish all topics even if payload has not changed",
             "type": "boolean"              
           },
+          "showMqttEvents": {
+            "title": "Show MQTT events in the log",
+            "type": "boolean",
+            "default": true,
+            "required": false
+          }, 
           "subscribeTemperature": {
             "type": "object",
             "properties": {
@@ -246,7 +249,8 @@
             "mqtt.publishStatusChanged",
             "mqtt.publishIntervals",
             "mqtt.publishFrequency",
-            "mqtt.publishAll"
+            "mqtt.publishAll",
+            "mqtt.showMqttEvents"
           ]
         },
         {
@@ -266,15 +270,12 @@
     },
     {
       "type": "fieldset",
-      "title": "Advanced Settings",
+      "title": "Other Settings",
       "expandable": true,
       "expanded": false,
       "items": [
-        {
-          "type": "flex",
-          "flex-flow": "row wrap",
-          "items": [ "closeConnectionDelay", "connectionTimeout" ] 
-        },
+        "showHomebridgeEvents",
+        "showModuleEvents",
         "clearCache"
       ]
     }

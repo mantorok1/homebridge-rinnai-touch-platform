@@ -10,8 +10,8 @@ export class TemperatureFormat implements IMqttFormat {
     private readonly platform: RinnaiTouchPlatform,
     private readonly client: mqtt.AsyncMqttClient,
   ) {
-    if (platform.settings.mqtt.subscribeTemperature) {
-      this.zoneTopics = <Record<string, string>>platform.settings.mqtt.subscribeTemperature; 
+    if (platform.settings.mqtt!.subscribeTemperature) {
+      this.zoneTopics = <Record<string, string>>platform.settings.mqtt!.subscribeTemperature; 
     }
   }
 

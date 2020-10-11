@@ -2,19 +2,19 @@ import net = require('net');
 import events = require('events');
 
 import { RinnaiTouchPlatform } from '../platform';
-import { UdpService, IModuleAddress } from './UdpService';
+import { UdpService, ModuleAddress } from './UdpService';
 import { Message } from '../models/Message';
 
-export { IModuleAddress };
+export { ModuleAddress };
 
 export class TcpService extends events.EventEmitter {
-  private readonly defaultAddress?: IModuleAddress;
+  private readonly defaultAddress?: ModuleAddress;
   private readonly udp: UdpService;
   private socket?: net.Socket;
 
   constructor(
     private readonly platform: RinnaiTouchPlatform,
-    private address?: IModuleAddress,
+    private address?: ModuleAddress,
     private readonly timeout: number = 5000,
   ) {
     super();
@@ -45,17 +45,19 @@ export class TcpService extends events.EventEmitter {
           }
         });
 
-        this.socket.on('error', (error: Error) => {
+        this.socket.once('error', (error: Error) => {
           this.closeSocket(true);
+          this.emit('error', error.message);
           reject(error);
         });
 
-        this.socket.on('ready', () => {
+        this.socket.once('ready', () => {
           this.platform.log.info('TCP Connection: Open');
         });
 
-        this.socket.on('timeout', () => {
+        this.socket.once('timeout', () => {
           this.closeSocket(true);
+          this.emit('error', 'TCP Connection timed out');
           reject(new Error('TCP Connection timed out'));
         });
 
@@ -91,7 +93,7 @@ export class TcpService extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'destroy');
 
     if (this.socket) {
-      this.closeSocket(false);
+      this.closeSocket(true);
       this.platform.log.info('TCP Connection: Closed');
     }
   }

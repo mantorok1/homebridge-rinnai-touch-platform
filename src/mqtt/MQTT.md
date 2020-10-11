@@ -69,7 +69,8 @@ This section describes the configuration options for the plugin to operate as an
         "publishStatusChanged": false,
         "publishIntervals": true,
         "publishFrequency": 60,
-        "publishAll": false, 
+        "publishAll": false,
+        "showMqttEvents": true,
         "subscribeTemperature": {
             "U": "temp/u",
             "A": "temp/a",
@@ -79,22 +80,23 @@ This section describes the configuration options for the plugin to operate as an
         }
     },
 
-|Option|Description|Default Value (if not supplied)|
-|-|-|-|
-|`host`|MQTT Broker host name||
-|`port`|MQTT Broker port|`1883`|
-|`username`|Credentials for MQTT Broker||
-|`password`|||
-|`topicPrefix`|Optional text to prefix to each topic name||
-|`formatNative`|Enable Native Rinnai Touch message format|`false`|
-|`formatHomeAssistant`|Enable Home Assistant message format|`false`|
-|`publishStatusChanged`|Publish when status has changed|`false`|
-|`publishIntervals`|Publish at regular intervals|`false`|
-|`publishFrequency`|Publish frequency (secs)|`60`|
-|`publishAll`|Publish all topics even if payload has not changed|`false`|
-|`subscribeTemperature`|Defines the topics the plugin subscribes to for receiving temeprature payloads||
+|Option|Required|Type|Description|Default Value (if not supplied)|
+|-|-|-|-|-|
+|`host`|Yes|string|MQTT Broker host name||
+|`port`|Yes|number|MQTT Broker port|`1883`|
+|`username`|No|string|Credentials for MQTT Broker||
+|`password`|No|string|||
+|`topicPrefix`|No|string|Optional text to prefix to each topic name||
+|`formatNative`|No|boolean|Enable Native Rinnai Touch message format|`false`|
+|`formatHomeAssistant`|No|boolean|Enable Home Assistant message format|`false`|
+|`publishStatusChanged`|No|boolean|Publish when status has changed|`false`|
+|`publishIntervals`|No|boolean|Publish at regular intervals|`false`|
+|`publishFrequency`|No|number|Publish frequency (secs)|`60`|
+|`publishAll`|No|boolean|Publish all topics even if payload has not changed|`false`|
+|`showMqttEvents`|No|string|Include MQTT vents in the logs|`true`|
+|`subscribeTemperature`|No|object|Defines the topics the plugin subscribes to for receiving temeprature payloads||
 
-#### subscriptTemeprature settings:
+#### subscribeTemperature settings:
 
 |Option|Description|
 |-|-|

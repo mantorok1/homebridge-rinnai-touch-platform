@@ -1,4 +1,4 @@
-# Homebridge Plugin for the Rinnai Touch WiFi Module
+# Rinnai Touch Platform
 
 [![npm](https://badgen.net/npm/v/homebridge-rinnai-touch-platform) ![npm](https://badgen.net/npm/dt/homebridge-rinnai-touch-platform)](https://www.npmjs.com/package/homebridge-rinnai-touch-platform) [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 
@@ -20,7 +20,7 @@ Functions available:
 
 ## Accessories
 
-This plugin will add one or more accessories to the Home app depending on your Rinnai Touch status. Accessories are discovered automatically without any need to modify the config.json file. The following table describes each type of accessory.
+This plugin will add one or more accessories to the Home app depending on the status received from the Rinnai Touch module. Accessories are discovered automatically. The following table describes each type of accessory.
 
 |Accessory|Description|
 |-|-|
@@ -34,7 +34,7 @@ This plugin will add one or more accessories to the Home app depending on your R
 ## Installation
 Note: This plugin requires homebridge (version 1.0.0 or above) to be installed first.
 
-To install or upgrade to the latest version of this plugin:
+It is highly recommended that you use Homebridge Config UI X to install and configure the plugin. Alternatively you can install from the command line as follows:
 
     npm install -g homebridge-rinnai-touch-platform
 
@@ -44,30 +44,30 @@ If you currently use the old plugin (ie. `homebridge-rinnai-touch-plugin`) you m
 
     npm uninstall -g homebridge-rinnai-touch-plugin
 
-It is also recommended that you remove the `cachedAccessories` file from the `.homebridge/accessories` folder.
+Once uninstalled restart Homebridge which should clear the accessories. If this doesn't work you can delete the `cachedAccessories` file from the `.homebridge/accessories` folder.
 
 ## Configuration
 
-This is a platform plugin that will register accessories and their services with the Bridge provided by homebridge. The plugin will attempt to discover your Rinnai Touch accessories automatically thus requiring minimal configuration to the config.json file.
+This is a platform plugin that will register accessories and their services with the bridge provided by Homebridge. The plugin will attempt to discover your Rinnai Touch accessories automatically thus requiring minimal configuration to the `config.json` file.
 
-If you find the auto config is not correct for your system or some defaults are not to your liking there are some overrides you can define in the config.json file.
+If you find the default config is not correct for your system or not to your liking there are some overrides you can define in the `config.json` file.
 
-|Option|Description|Default Value (if not supplied)|
-|-|-|-|
-|`platform`|Must be `"RinnaiTouchPlatform"`. This is the only mandatory configuration setting.||
-|`name`|The name of the platform|`"Rinnai Touch"`|
-|`address`|IP Address of the WiFi module<br/>NOTE: leave blank for auto discovery||
-|`port`|Port to use for the WiFI module<br/>NOTE: leave blank for auto discovery|`27847`|
-|`controllerType`|The type of accessory to use for the controller(s). Options are:<br/>`T` for Thermostat<br/>`H` for Heater Cooler|`T`|
-|`zoneType`|The type of accessory to use for controlling zones (only applicable for Single Temperature Set Point). Options are:<br>`N` for None (ie. don't show any accessory for zones<br/>`S` for Switch<br/>`H` for Heater Cooler|`S`|
-|`showFan`|Show the fan accessory in the Home app|`true`|
-|`showAuto`|Show the `AUTO` option in the Thermostat menu|`true`|
-|`showAdvanceSwitches`|Show the Advance Period switch accessory in the Home app|`true`|
-|`showManualSwitches`|Show the Manual switch accessory in the Home app|`true`|
-|`closeConnectionDelay`|The time (ms) to wait for the TCP connection to fully close. Increasing this may reduce `Connection Refused` errors from occuring|`1100`|
-|`connectionTimeout`|The time (ms) to wait to close the TCP connection after the last request. Set to `-1` to keep the connection open indefinitely, or `0` to close immediately|`5000`|
-|`clearCache`|Clear all the plugin's cached accessories from homebridge to force full discovery of accessories on restart|`false`|
-|`mqtt`|See [MQTT.md](src/mqtt/MQTT.md) for details|`{}`|
+|Option|Required|Type|Description|Default Value (if not supplied)|
+|-|-|-|-|-|
+|`platform`|Yes|string|Must be `"RinnaiTouchPlatform"`. This is the only mandatory configuration setting.||
+|`name`|Yes|string|The name of the platform|`"Rinnai Touch"`|
+|`address`|No|string|IP Address of the WiFi module<br/>NOTE: leave blank for auto discovery||
+|`port`|No|number|Port to use for the WiFI module<br/>NOTE: leave blank for auto discovery|`27847`|
+|`controllerType`|No|string|The type of accessory to use for the controller(s). Options are:<br/>`T` for Thermostat<br/>`H` for Heater Cooler|`T`|
+|`zoneType`|No|string|The type of accessory to use for controlling zones (only applicable for Single Temperature Set Point). Options are:<br>`N` for None (ie. don't show any accessory for zones<br/>`S` for Switch<br/>`H` for Heater Cooler|`S`|
+|`showFan`|No|boolean|Show the fan accessory in the Home app|`true`|
+|`showAuto`|No|boolean|Show the `AUTO` option in the Thermostat menu|`true`|
+|`showAdvanceSwitches`|No|boolean|Show the Advance Period switch accessory in the Home app|`true`|
+|`showManualSwitches`|No|boolean|Show the Manual switch accessory in the Home app|`true`|
+|`showHomebridgeEvents`|No|boolean|Include the homebridge events such as getting and setting characterics in the logs|`true`|
+|`showModuleEvents`|No|boolean|Include the module events such as commands sent in the logs|`true`|
+|`clearCache`|No|boolean|Clear all the plugin's cached accessories from homebridge to force full discovery of accessories on restart|`false`|
+|`mqtt`|No|object|See [MQTT.md](src/mqtt/MQTT.md) for details||
 
 
 #### Example: Bare mimimum
@@ -102,16 +102,34 @@ This is useful if you only use Manual Control of your HVAC (ie. no programme sch
       }
     ],
 
+#### Example: Showing all available options except for MQTT
+
+    "platforms": [
+      {
+        "platform": "RinnaiTouchPlatform",
+        "name": "Rinnai Touch",
+        "controllerType": "H",
+        "zoneType": "S",
+        "showFan": true,
+        "showAuto": true,
+        "showAdvanceSwitches": true,
+        "showManualSwitches": true,
+        "showHomebridgeEvents": true,
+        "showModuleEvents": true,
+        "clearCache": false
+      }
+    ],
+
 ## Version History
 
 See [Change Log](CHANGELOG.md).
 
-## Known Limitations
-* The plugin only supports a TCP connection over a LAN so no other connections can be active at the time. This would typically be the TouchApp by Rinnai.
-* If the TCP connection is not closed properly then no further connections can be made to the module. I've tried to mitigate this as best I can by keeping TCP connections as short as possible and only allowing one request at a time. If it does happen I find rebooting my router clears it but rebooting the module itself should work also.
+## Known Limitations / Troubleshooting
+* The Rinnai Touch module appears to only allow a single client to connect to it at one time via TCP/IP. As the plugin only supports a TCP/IP connection to the module no other connections from other clients (such as the TouchApp by Rinnai) can be active at the time the plugin starts. Once a connection is established the plugin will keep it open to prevent other clients connecting to it via TCP/IP. NOTE: Once the plugin has started you can then use the TouchApp as it will connect to the module via the cloud.
+* The module will disconnect if it has not received any requests after 5 minutes. To prevent this the plugin will send a blank command every minute.
+* The module is also very temperamental about the TCP/IP connection. If it is not not closed properly or re-opened too quickly then a "Connection Refused" error may occur which prevents the plugin from connecting to the module. This may happen if Homebridge is not shutdown gracefully (eg. a crash). If it does happen try restarting Homebridge, the Rinnai Touch module or your router.
 * Multi controller and Evaporative cooling configurations were not able to be tested so may not function properly.
-* Due to the lag between sending a command to the module and it correctly reflecting that command in it's status there may be a short delay of a few seconds before the Home app shows the correct values. eg. When switching from HEAT to COOL mode some details such as the desired temperature will take a few seconds before the current value is shown.
-* If the number of zones is different between the `Heat` and `Cool` modes the Zone Switches are dynamically added or removed as necessary. The downside of this is that you will loose any changes you made to the accessory (eg. name).
+* Due to the lag between sending a command to the module and it correctly reflecting that command in it's status there may be a short delay of a few seconds before the Home app shows the correct values. eg. When switching from `HEAT` to `COOL` mode some details such as the desired temperature will take a few seconds before the current value is shown.
+* If the number of zones is different between the `HEAT` and `COOL` modes the Zone Switches are dynamically added or removed as necessary. The downside of this is that you will loose any changes you made to the accessory (eg. name).
 * If the WiFi module does not supply a current temperature then the temperature will display as zero in the Thermostat/Heater Cooler accessory. I would have prefered it showed as blank but couldn't find a way to do it. This appears to be a limitation of the service within Homebridge.
-* The WiFi module will close the TCP connection after 5 minutes of inactivity. If the connection timeout is set to never (ie. `-1`) the plugin will attempt to automatically reconnect.
 * The 'Heater Cooler' accessory is not currently supported by Home Assistant. See https://github.com/home-assistant/core/issues/30384

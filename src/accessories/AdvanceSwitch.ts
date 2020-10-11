@@ -1,6 +1,6 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
-import { ControlModes, ScheduleOverrideModes } from '../services/RinnaiTouchService';
+import { ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
 
 export class AdvanceSwitch extends AccessoryBase {

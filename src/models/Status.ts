@@ -38,8 +38,8 @@ export class Status {
     return this.getState(group1, group2, command) === state;
   }
 
-  toString(): string | undefined {
-    return this._statusString;
+  toString(): string {
+    return this._statusString ?? '';
   }
 
   equals(status?: Status): boolean {

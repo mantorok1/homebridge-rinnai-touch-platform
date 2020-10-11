@@ -2,7 +2,7 @@ import dgram = require('dgram');
 
 import { RinnaiTouchPlatform } from '../platform';
 
-export interface IModuleAddress {
+export type ModuleAddress = {
   address: string;
   port: number;
 }
@@ -16,7 +16,7 @@ export class UdpService {
   ) {
   }
 
-  getAddress(): Promise<IModuleAddress> {
+  getAddress(): Promise<ModuleAddress> {
     this.platform.log.debug(this.constructor.name, 'getAddress');
 
     return new Promise((resolve, reject) => {

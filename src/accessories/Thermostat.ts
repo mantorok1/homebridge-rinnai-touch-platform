@@ -1,6 +1,6 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
-import { Modes, ControlModes, ScheduleOverrideModes } from '../services/RinnaiTouchService';
+import { Modes, ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
 import { ThermostatBase } from './ThermostatBase';
 
 export class Thermostat extends ThermostatBase {

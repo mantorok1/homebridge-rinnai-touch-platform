@@ -10,7 +10,7 @@ export enum Modes {
 }
 
 export enum ControlModes {
-  MANUAL, SCHEDULE
+  MANUAL, AUTO
 }
 
 export enum ScheduleOverrideModes {
@@ -346,7 +346,7 @@ export class RinnaiService extends events.EventEmitter {
       if (state !== undefined) {
         states[zone] = state === 'M'
           ? ControlModes.MANUAL
-          : ControlModes.SCHEDULE;
+          : ControlModes.AUTO;
       }
     }
 
@@ -453,6 +453,10 @@ export class RinnaiService extends events.EventEmitter {
     try {
       this.updateStates();
 
+      if (!this.getFanState()) {
+        return;
+      }
+
       if (this.getFanSpeed() === value) {
         return;
       }
@@ -492,7 +496,7 @@ export class RinnaiService extends events.EventEmitter {
       const mode = this.getRinnaiTouchMode();
       const path = this.stateService.getPath('TargetTemp', mode, zone);
       const state = this.mode === Modes.EVAP
-        ? Math.round((value - 8) / 22 * 15 + 19)
+        ? Math.round((1 - ((value - 8) / 22)) * 15 + 19)
         : value;
 
       await this.sendRequest(path, state.toString().padStart(2, '0'));

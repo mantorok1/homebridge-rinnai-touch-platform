@@ -93,7 +93,9 @@ export class AccessoryService {
     this.platform.log.debug(this.constructor.name, 'discoverAdvanceSwitches');
 
     for(const zone of this.platform.service.AllZones) {
-      if (this.platform.settings.showAdvanceSwitches && this.platform.service.controllers.includes(zone)) {
+      if (this.platform.settings.showAdvanceSwitches &&
+          this.platform.service.hasHeater &&
+          this.platform.service.controllers.includes(zone)) {
         this.addAccessory(AdvanceSwitch, AdvanceSwitch.name, zone);
       } else {
         this.removeAccessory(AdvanceSwitch.name, zone);

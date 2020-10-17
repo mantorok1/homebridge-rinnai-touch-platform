@@ -1,6 +1,6 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
-import { ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
+import { Modes, ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
 
 export class AdvanceSwitch extends AccessoryBase {
@@ -44,11 +44,15 @@ export class AdvanceSwitch extends AccessoryBase {
   async setAdvanceSwitchOn(value: boolean): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setAdvanceSwitchOn', value);
 
+    if (this.platform.service.mode === Modes.EVAP) {
+      return;
+    }
+
     const state: ScheduleOverrideModes = value
       ? ScheduleOverrideModes.ADVANCE
       : ScheduleOverrideModes.NONE;
 
-    await this.platform.service.setControlMode(ControlModes.SCHEDULE, this.platformAccessory.context.zone);
+    await this.platform.service.setControlMode(ControlModes.AUTO, this.platformAccessory.context.zone);
     await this.platform.service.setScheduleOverride(state, this.platformAccessory.context.zone);
   }
 

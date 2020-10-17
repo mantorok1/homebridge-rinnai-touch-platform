@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.1.1 (2020-10-17)
+
+* [FIX] Some commands not working for Evaporative Cooling
+* [FIX] MQTT publishing incorrect TCP/IP connection status
+* Update dependencies
+
 ## 3.1.0 (2020-10-11)
 
 * TCP/IP connection always open to improve performance and reliability

@@ -2,6 +2,7 @@ import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { ControlModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
+import { Modes } from '../rinnai/RinnaiService';
 
 export class ManualSwitch extends AccessoryBase {
   constructor(
@@ -44,9 +45,14 @@ export class ManualSwitch extends AccessoryBase {
   async setManualSwitchOn(value: boolean): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setManualSwitchOn', value);
 
+    // For Evap the unit must be ON before setting control mode
+    if (this.platform.service.mode === Modes.EVAP) {
+      await this.platform.service.setState(true);
+    }
+
     const state: ControlModes = value
       ? ControlModes.MANUAL
-      : ControlModes.SCHEDULE;
+      : ControlModes.AUTO;
 
     await this.platform.service.setControlMode(state, this.platformAccessory.context.zone);
   }

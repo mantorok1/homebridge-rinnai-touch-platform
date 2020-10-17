@@ -191,7 +191,9 @@ export class HeaterCooler extends ThermostatBase {
       }
     }
 
-    if (this.platform.service.getFanState() && value === this.platform.Characteristic.Active.INACTIVE) {
+    if (this.platform.service.mode !== Modes.EVAP &&
+        this.platform.service.getFanState() &&
+        value === this.platform.Characteristic.Active.INACTIVE) {
       return;
     }
 
@@ -201,7 +203,9 @@ export class HeaterCooler extends ThermostatBase {
     }
 
     await this.setModeComplete();
-    await this.platform.service.setFanState(false);
+    if (this.platform.service.mode !== Modes.EVAP) {
+      await this.platform.service.setFanState(false);
+    }   
     await this.platform.service.setState(true);
   }
 
@@ -223,8 +227,12 @@ export class HeaterCooler extends ThermostatBase {
         break;
       case this.platform.Characteristic.TargetHeaterCoolerState.AUTO:
         if (this.platform.service.getState()) {
-          await this.platform.service.setControlMode(ControlModes.SCHEDULE, this.platformAccessory.context.zone);
-          await this.platform.service.setScheduleOverride(ScheduleOverrideModes.NONE, this.platformAccessory.context.zone);
+          if (this.platform.service.mode !== Modes.EVAP) {
+            await this.platform.service.setControlMode(ControlModes.AUTO, this.platformAccessory.context.zone);
+            await this.platform.service.setScheduleOverride(ScheduleOverrideModes.NONE, this.platformAccessory.context.zone);  
+          } else {
+            await this.platform.service.setControlMode(ControlModes.AUTO);
+          }
         }
         // Force update values so mode switches back to correct mode
         setTimeout(this.updateValues.bind(this), 1000);
@@ -242,6 +250,10 @@ export class HeaterCooler extends ThermostatBase {
       : 'U';
 
     await this.setModeComplete();
+
+    if (this.platform.service.mode === Modes.EVAP) {
+      await this.platform.service.setControlMode(ControlModes.AUTO);
+    }
     await this.platform.service.setTargetTemperature(value, zone);
   }
 

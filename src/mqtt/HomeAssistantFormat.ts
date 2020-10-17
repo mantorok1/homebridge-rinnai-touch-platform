@@ -227,7 +227,7 @@ export class HomeAssistantFormat implements IMqttFormat {
       zone = zone.length !== 1 ? 'U' : zone;
       const state: ControlModes = payload.toLowerCase() === 'on'
         ? ControlModes.MANUAL
-        : ControlModes.SCHEDULE;
+        : ControlModes.AUTO;
 
       this.platform.service.setControlMode(state, zone);
     } catch (error) {

@@ -6,7 +6,7 @@ import { IMqttFormat } from './MqttService';
 export class ConnectionFormat implements IMqttFormat {
   private readonly pubTopic: string;
   private topicPayload: string | undefined;
-  private connected = false;
+  private connectionError: boolean | undefined;
 
   constructor(
     private readonly platform: RinnaiTouchPlatform,
@@ -46,14 +46,14 @@ export class ConnectionFormat implements IMqttFormat {
   private publishStatus() {
     this.platform.log.debug(this.constructor.name, 'publishStatus');
 
-    if (this.connected === this.platform.session.isConnected) {
+    if (this.connectionError === this.platform.session.hasConnectionError) {
       return;
     }
 
-    this.connected = this.platform.session.isConnected;
-    const payload: string = this.connected
-      ? 'ok'
-      : 'error';
+    this.connectionError = this.platform.session.hasConnectionError;
+    const payload: string = this.connectionError
+      ? 'error'
+      : 'ok';
 
     this.publish(this.pubTopic, payload);
   }

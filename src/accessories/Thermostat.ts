@@ -150,7 +150,9 @@ export class Thermostat extends ThermostatBase {
   async setTargetHeatingCoolingState(value: number): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setTargetHeatingCoolingState', value);
 
-    if (this.platform.service.getFanState() && value === this.platform.Characteristic.TargetHeatingCoolingState.OFF) {
+    if (this.platform.service.mode !== Modes.EVAP &&
+        this.platform.service.getFanState() &&
+        value === this.platform.Characteristic.TargetHeatingCoolingState.OFF) {
       return;
     }
 
@@ -159,11 +161,8 @@ export class Thermostat extends ThermostatBase {
       return;
     }
 
-    if (this.platform.service.getFanState()) {
-      await this.platform.service.setFanState(false);
-    }
-
     if (value === this.platform.Characteristic.TargetHeatingCoolingState.HEAT) {
+      await this.platform.service.setFanState(false);
       await this.platform.service.setMode(Modes.HEAT);
       await this.platform.service.setState(true);
       return;
@@ -171,18 +170,24 @@ export class Thermostat extends ThermostatBase {
 
     if (value === this.platform.Characteristic.TargetHeatingCoolingState.COOL) {
       if (this.platform.service.hasCooler) {
+        await this.platform.service.setFanState(false);
         await this.platform.service.setMode(Modes.COOL);
+        await this.platform.service.setState(true);
       } else {
         await this.platform.service.setMode(Modes.EVAP);
+        await this.platform.service.setState(true);
       }
-      await this.platform.service.setState(true);
       return;
     }
 
     if (value === this.platform.Characteristic.TargetHeatingCoolingState.AUTO) {
       await this.platform.service.setState(true);
-      await this.platform.service.setControlMode(ControlModes.SCHEDULE, this.platformAccessory.context.zone);
-      await this.platform.service.setScheduleOverride(ScheduleOverrideModes.NONE, this.platformAccessory.context.zone);
+      if (this.platform.service.mode !== Modes.EVAP) {
+        await this.platform.service.setControlMode(ControlModes.AUTO, this.platformAccessory.context.zone);
+        await this.platform.service.setScheduleOverride(ScheduleOverrideModes.NONE, this.platformAccessory.context.zone);  
+      } else {
+        await this.platform.service.setControlMode(ControlModes.AUTO);
+      }
       // Force update values so mode switches back to correct mode
       setTimeout(this.updateValues.bind(this), 1000);
     }
@@ -190,6 +195,10 @@ export class Thermostat extends ThermostatBase {
 
   async setTargetTemperature(value: number): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setTargetTemperature', value);
+
+    if (this.platform.service.mode === Modes.EVAP) {
+      await this.platform.service.setControlMode(ControlModes.AUTO);
+    }
 
     await this.platform.service.setTargetTemperature(value, this.platformAccessory.context.zone);
   }

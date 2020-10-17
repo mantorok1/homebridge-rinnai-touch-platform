@@ -1,6 +1,7 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { AccessoryBase } from './AccessoryBase';
+import { Modes, ControlModes } from '../rinnai/RinnaiService';
 
 export class Fan extends AccessoryBase {
 
@@ -50,9 +51,14 @@ export class Fan extends AccessoryBase {
   async setFanOn(value: boolean): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setFanOn', value);
 
-    // If turning fan on then ensure HVAC is off first
+    // If turning fan on then ensure HEAT/COOL is off or EVAP is on
     if (value) {
-      await this.platform.service.setState(false);
+      if (this.platform.service.mode !== Modes.EVAP) {
+        await this.platform.service.setState(false);
+      } else {
+        await this.platform.service.setState(true);
+        await this.platform.service.setControlMode(ControlModes.MANUAL);
+      }
     }
 
     await this.platform.service.setFanState(value);

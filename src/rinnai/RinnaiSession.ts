@@ -14,7 +14,7 @@ export class RinnaiSession extends events.EventEmitter {
   private readonly queue: cq;
   private sequence = 0;
   private status?: Status;
-  private connected = false;
+  private connectionError = false;
 
   constructor(private readonly platform: RinnaiTouchPlatform) {
     super();
@@ -36,21 +36,24 @@ export class RinnaiSession extends events.EventEmitter {
   async start() {
     this.platform.log.debug(this.constructor.name, 'start');
 
-    this.connected = false;
-    while (!this.connected) {
+    let connected = false;
+    while (!connected) {
       for (let i = 1; i <= 3; i++) {
         try {
           await this.tcp.connect();
-          this.connected = true;
+          connected = true;
+          this.connectionError = false;
           this.emit('connection');
           break;
         } catch (error) {
+          this.connectionError = true;
+          this.emit('connection');
           this.platform.log.warn(`TCP Connection failed. Attempt ${i} of 3 [Error: ${error.message}]`);
           await this.delay(500);
         }
       }
 
-      if (!this.connected) {
+      if (!connected) {
         this.platform.log.warn('Will try again in 1 minute');
         await this.delay(60000);
       }
@@ -72,9 +75,6 @@ export class RinnaiSession extends events.EventEmitter {
     this.platform.log.debug(this.constructor.name, 'stop');
 
     try {
-      this.connected = false;
-      this.emit('connection');
-
       if (this.pingIntervalId !== undefined) {
         clearInterval(this.pingIntervalId);
       }
@@ -190,8 +190,8 @@ export class RinnaiSession extends events.EventEmitter {
     }
   }
 
-  get isConnected(): boolean {
-    return this.connected;
+  get hasConnectionError(): boolean {
+    return this.connectionError;
   }
 
   private get nextSequence(): number {

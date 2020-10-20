@@ -47,7 +47,7 @@ export class TcpService extends events.EventEmitter {
 
         this.socket.once('error', (error: Error) => {
           this.closeSocket(true);
-          this.emit('error', error.message);
+          this.emit('connection_error', error.message);
           reject(error);
         });
 
@@ -57,7 +57,7 @@ export class TcpService extends events.EventEmitter {
 
         this.socket.once('timeout', () => {
           this.closeSocket(true);
-          this.emit('error', 'TCP Connection timed out');
+          this.emit('connection_error', 'TCP Connection timed out');
           reject(new Error('TCP Connection timed out'));
         });
 

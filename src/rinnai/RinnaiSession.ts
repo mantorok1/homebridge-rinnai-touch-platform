@@ -63,7 +63,7 @@ export class RinnaiSession extends events.EventEmitter {
     this.tcp.on('message', this.receiveMessage.bind(this));
 
     // error handler
-    this.tcp.on('error', this.handleError.bind(this));
+    this.tcp.on('connection_error', this.handleConnectionError.bind(this));
 
     // Ping module
     this.pingIntervalId = setInterval(async () => {
@@ -177,11 +177,13 @@ export class RinnaiSession extends events.EventEmitter {
     this.emit('status', message.status);
   }
 
-  private async handleError(error: string): Promise<void> {
+  private async handleConnectionError(error: string): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'handleError', error);
 
     try {
       this.platform.log.warn(`TCP Connection failed. Attempting to reconnect [Error: ${error}]`);
+      this.connectionError = true;
+      this.emit('connection');
       this.stop();
       await this.delay(2000);
       await this.start();

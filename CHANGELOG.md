@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.1.2 (2020-10-20)
+
+* [FIX] Failed TCP/IP connection causes plugin to crash
+
 ## 3.1.1 (2020-10-17)
 
 * [FIX] Some commands not working for Evaporative Cooling

@@ -14,7 +14,7 @@ export interface IMqttFormat {
 }
 
 export class MqttService {
-  private settings: MqttSettings;
+  private settings?: MqttSettings;
   private client!: mqtt.AsyncMqttClient;
   private formats: IMqttFormat[] = [];
   private topicMap: Map<string, IMqttFormat> = new Map();
@@ -22,15 +22,19 @@ export class MqttService {
   constructor(
     private readonly platform: RinnaiTouchPlatform,
   ) {
-    this.settings = platform.settings.mqtt!;
+    this.settings = platform.settings.mqtt;
   }
 
   async init(): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'init');
 
     try {
+      if (this.settings === undefined) {
+        return;
+      }
+
       if (this.settings.host === undefined) {
-        this.platform.log.info('MQTT: No broker defined');
+        this.platform.log.info('MQTT: No broker host defined');
         return;
       }
   
@@ -91,10 +95,10 @@ export class MqttService {
   async connect(): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'connect');
 
-    const url = `${this.settings.host}:${this.settings.port}`;
+    const url = `${this.settings!.host}:${this.settings!.port}`;
     const options: mqtt.IClientOptions = {
-      username: <string | undefined>this.settings.username,
-      password: <string | undefined>this.settings.password,
+      username: <string | undefined>this.settings!.username,
+      password: <string | undefined>this.settings!.password,
     };
 
     let connected = false;

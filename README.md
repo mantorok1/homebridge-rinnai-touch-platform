@@ -32,9 +32,9 @@ This plugin will add one or more accessories to the Home app depending on the st
 |Pump|Displays the current state of the pump if you have Evaporative Cooling. Allows you to turn it On or Off<br/>NOTE: The pump can only be used when the Thermostat is in `COOL` mode.|
 
 ## Installation
-Note: This plugin requires homebridge (version 1.0.0 or above) to be installed first.
+Note: This plugin requires [Homebridge](https://homebridge.io) (version 1.0.0 or above) to be installed first.
 
-It is highly recommended that you use Homebridge Config UI X to install and configure the plugin. Alternatively you can install from the command line as follows:
+It is highly recommended that you use [Homebridge Config UI X](https://www.npmjs.com/package/homebridge-config-ui-x) to install and configure the plugin. Alternatively you can install from the command line as follows:
 
     npm install -g homebridge-rinnai-touch-platform
 
@@ -65,7 +65,8 @@ If you find the default config is not correct for your system or not to your lik
 |`showAdvanceSwitches`|No|boolean|Show the Advance Period switch accessory in the Home app|`true`|
 |`showManualSwitches`|No|boolean|Show the Manual switch accessory in the Home app|`true`|
 |`showHomebridgeEvents`|No|boolean|Include the homebridge events such as getting and setting characterics in the logs|`true`|
-|`showModuleEvents`|No|boolean|Include the module events such as commands sent in the logs|`true`|
+|`showModuleEvents`|No|boolean|Include the module's events (eg. commands sent) in the logs|`true`|
+|`showModuleStatus`|No|boolean|Include the module's status in the logs|`false`|
 |`clearCache`|No|boolean|Clear all the plugin's cached accessories from homebridge to force full discovery of accessories on restart|`false`|
 |`mqtt`|No|object|See [MQTT.md](src/mqtt/MQTT.md) for details||
 

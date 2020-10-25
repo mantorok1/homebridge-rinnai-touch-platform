@@ -2,9 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## NEXT
+
+* New option to show Rinnai Touch module's status in logs & other minor improvements
+
 ## 3.1.2 (2020-10-20)
 
-* [FIX] Failed TCP/IP connection causes plugin to crash
+* [FIX] Failed TCP/IP connection causes plugin to crash ([#2](https://github.com/mantorok1/homebridge-rinnai-touch-platform/issues/2))
 
 ## 3.1.1 (2020-10-17)
 

@@ -93,7 +93,7 @@ This section describes the configuration options for the plugin to operate as an
 |`publishIntervals`|No|boolean|Publish at regular intervals|`false`|
 |`publishFrequency`|No|number|Publish frequency (secs)|`60`|
 |`publishAll`|No|boolean|Publish all topics even if payload has not changed|`false`|
-|`showMqttEvents`|No|string|Include MQTT vents in the logs|`true`|
+|`showMqttEvents`|No|boolean|Include MQTT events in the logs|`true`|
 |`subscribeTemperature`|No|object|Defines the topics the plugin subscribes to for receiving temeprature payloads||
 
 #### subscribeTemperature settings:

@@ -85,6 +85,12 @@
         "default": true,
         "required": false
       },  
+      "showModuleStatus": {
+        "title": "Show Rinnai Touch Module status in the log",
+        "type": "boolean",
+        "default": false,
+        "required": false
+      },  
       "clearCache": {
         "title": "Clear plugin's accessory cache",
         "type": "boolean",
@@ -95,7 +101,7 @@
         "type": "object",
         "properties": {
           "host": {
-            "title": "Host Name",
+            "title": "Broker Host Name",
             "type": "string",
             "placeholder": "mqtt://localhost"
           },
@@ -276,6 +282,7 @@
       "items": [
         "showHomebridgeEvents",
         "showModuleEvents",
+        "showModuleStatus",
         "clearCache"
       ]
     }

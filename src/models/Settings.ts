@@ -94,6 +94,10 @@ export class Settings {
     return <boolean | undefined>this.config.showModuleEvents ?? true;
   }
 
+  get showModuleStatus(): boolean {
+    return <boolean | undefined>this.config.showModuleStatus ?? false;
+  }
+
   get clearCache(): boolean {
     return <boolean | undefined>this.config.clearCache ?? true;
   }

@@ -173,6 +173,10 @@ export class RinnaiSession extends events.EventEmitter {
       return;
     }
 
+    if (this.platform.settings.showModuleStatus) {
+      this.platform.log.info(message.status!.toString());
+    }
+
     this.status = message.status;
     this.emit('status', message.status);
   }

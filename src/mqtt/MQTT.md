@@ -50,7 +50,9 @@ where U is the common zone (if applicable)
 
 ## Current Temperature Subscription
 
-This allows the plugin to receive the current temperature from external sources such as 3rd party temperature sensors via MQTT. Each zone can have their own temperature topic subscription. This can be useful when the WiFi module doesn't include the temperature in its status information or only reports a single temeprature for all zones.
+This allows the plugin to receive the current temperature from external sources such as 3rd party temperature sensors via MQTT. Each zone can have their own temperature topic subscription. This can be useful when the WiFi module doesn't include the temperature in its status information or only reports a single temperature for all zones.
+
+An optional JSONPath can be defined to extract the temperature from a payload containing JSON. If the JSONPath is not supplied then the only the temperature (ie. a number) is assumed to be in the payload.
 
 NOTE: The Topic Prefix is not used for these topics.
 
@@ -96,12 +98,17 @@ This section describes the configuration options for the plugin to operate as an
 |`showMqttEvents`|No|boolean|Include MQTT events in the logs|`true`|
 |`subscribeTemperature`|No|object|Defines the topics the plugin subscribes to for receiving temeprature payloads||
 
-#### subscribeTemperature settings:
+### subscribeTemperature settings:
 
-|Option|Description|
-|-|-|
-|`U`|Topic for Zone U's temperature (ie. Common zone)|
-|`A`|Topic for Zone A's temperature|
-|`B`|Topic for Zone B's temperature|
-|`C`|Topic for Zone C's temperature|
-|`D`|Topic for Zone D's temperature|
+|Option|Required|Type|Description|Default Value (if not supplied)|
+|-|-|-|-|-|
+|`U`|No|string|Topic for Zone U's temperature (ie. Common zone)||
+|`A`|No|string|Topic for Zone A's temperature||
+|`B`|No|string|Topic for Zone B's temperature||
+|`C`|No|string|Topic for Zone C's temperature||
+|`D`|No|string|Topic for Zone D's temperature||
+|`jsonPathU`|No|string|JSONPath to extract temperature from MQTT payload (Zone U)||
+|`jsonPathA`|No|string|JSONPath to extract temperature from MQTT payload (Zone A)||
+|`jsonPathB`|No|string|JSONPath to extract temperature from MQTT payload (Zone B)||
+|`jsonPathC`|No|string|JSONPath to extract temperature from MQTT payload (Zone C)||
+|`jsonPathD`|No|string|JSONPath to extract temperature from MQTT payload (Zone D)||

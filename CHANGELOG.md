@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## NEXT
 
 * New option to show Rinnai Touch module's status in logs & other minor improvements
+* JSONPath option to extract temperature from JSON payload for MQTT Current Temperature Subscription
 
 ## 3.1.2 (2020-10-20)
 

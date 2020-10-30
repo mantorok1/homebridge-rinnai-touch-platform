@@ -183,6 +183,26 @@
               "D": {
                 "type": "string",
                 "title": "Zone D Topic"
+              },
+              "jsonPathU": {
+                "type": "string",
+                "title": "JSONPath"
+              },
+              "jsonPathA": {
+                "type": "string",
+                "title": "JSONPath"
+              },
+              "jsonPathB": {
+                "type": "string",
+                "title": "JSONPath"
+              },
+              "jsonPathC": {
+                "type": "string",
+                "title": "JSONPath"
+              },
+              "jsonPathD": {
+                "type": "string",
+                "title": "JSONPath"
               }
             }
           }
@@ -265,11 +285,31 @@
           "expandable": true,
           "expanded": false,
           "items": [
-            "mqtt.subscribeTemperature.U",
-            "mqtt.subscribeTemperature.A",
-            "mqtt.subscribeTemperature.B",
-            "mqtt.subscribeTemperature.C",
-            "mqtt.subscribeTemperature.D"
+            {
+              "type": "flex",
+              "flex-flow": "row wrap",
+              "items": [ "mqtt.subscribeTemperature.U", "mqtt.subscribeTemperature.jsonPathU" ] 
+            },
+            {
+              "type": "flex",
+              "flex-flow": "row wrap",
+              "items": [ "mqtt.subscribeTemperature.A", "mqtt.subscribeTemperature.jsonPathA" ] 
+            },
+            {
+              "type": "flex",
+              "flex-flow": "row wrap",
+              "items": [ "mqtt.subscribeTemperature.B", "mqtt.subscribeTemperature.jsonPathB" ] 
+            },
+            {
+              "type": "flex",
+              "flex-flow": "row wrap",
+              "items": [ "mqtt.subscribeTemperature.C", "mqtt.subscribeTemperature.jsonPathC" ] 
+            },
+            {
+              "type": "flex",
+              "flex-flow": "row wrap",
+              "items": [ "mqtt.subscribeTemperature.D", "mqtt.subscribeTemperature.jsonPathD" ] 
+            }
           ]
         }
       ]

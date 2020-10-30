@@ -1,11 +1,11 @@
 import { PlatformConfig } from 'homebridge';
 
 export type MqttSettings = {
-  host: string | undefined,
-  port: number | undefined,
-  username: string | undefined,
-  password: string | undefined,
-  topicPrefix: string | undefined,
+  host?: string,
+  port?: number,
+  username?: string,
+  password?: string,
+  topicPrefix?: string,
   formatNative: boolean,
   formatHomeAssistant: boolean,
   formatConnection: boolean,
@@ -14,7 +14,18 @@ export type MqttSettings = {
   publishFrequency: number,
   publishAll: boolean,
   showMqttEvents: boolean, 
-  subscribeTemperature: Record<string, string> | undefined,
+  subscribeTemperature: {
+    U?: string,
+    A?: string,
+    B?: string,
+    C?: string,
+    D?: string,
+    jsonPathU?: string,
+    jsonPathA?: string,
+    jsonPathB?: string,
+    jsonPathC?: string,
+    jsonPathD?: string,
+  }
 }
 
 export class Settings {
@@ -22,23 +33,23 @@ export class Settings {
 
   constructor(private readonly config: PlatformConfig) {
     if (config.mqtt) {
-      const mqtt = <Record<string, string | number | boolean | undefined>>config.mqtt;
+      const mqtt = <MqttSettings>config.mqtt;
 
       this._mqtt = {
-        host: <string>mqtt.host,
-        port: <number | undefined>mqtt.port ?? 1883,
-        username: <string | undefined>mqtt.username,
-        password: <string | undefined>mqtt.password,
-        topicPrefix: <string | undefined>mqtt.topicPrefix,
-        formatNative: <boolean | undefined>mqtt.formatNative ?? false,
-        formatHomeAssistant: <boolean | undefined>mqtt.formatHomeAssistant ?? false,
-        formatConnection: <boolean | undefined>mqtt.formatConnection ?? false,
-        publishStatusChanged: <boolean | undefined>mqtt.publishStatusChanged ?? false,
-        publishIntervals: <boolean | undefined>mqtt.publishIntervals ?? false,
-        publishFrequency: <number | undefined>mqtt.publishFrequency ?? 60,
-        publishAll: <boolean | undefined>mqtt.publishAll ?? false,
-        showMqttEvents: <boolean | undefined>mqtt.showMqttEvents ?? true,
-        subscribeTemperature: <Record<string, string> | undefined>mqtt.subscribeTemperature,
+        host: mqtt.host,
+        port: mqtt.port ?? 1883,
+        username: mqtt.username,
+        password: mqtt.password,
+        topicPrefix: mqtt.topicPrefix,
+        formatNative: mqtt.formatNative ?? false,
+        formatHomeAssistant: mqtt.formatHomeAssistant ?? false,
+        formatConnection: mqtt.formatConnection ?? false,
+        publishStatusChanged: mqtt.publishStatusChanged ?? false,
+        publishIntervals: mqtt.publishIntervals ?? false,
+        publishFrequency: mqtt.publishFrequency ?? 60,
+        publishAll: mqtt.publishAll ?? false,
+        showMqttEvents: mqtt.showMqttEvents ?? true,
+        subscribeTemperature: mqtt.subscribeTemperature,
       };
     }
   }

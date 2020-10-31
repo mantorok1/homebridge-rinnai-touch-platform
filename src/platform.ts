@@ -5,6 +5,7 @@ import { RinnaiSession } from './rinnai/RinnaiSession';
 import { RinnaiService } from './rinnai/RinnaiService';
 import { AccessoryService } from './accessories/AccessoryService';
 import { MqttService } from './mqtt/MqttService';
+import { PushoverService } from './services/PushoverService';
 
 export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   private deletedAccessories: PlatformAccessory[] = [];
@@ -17,6 +18,7 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   public readonly service!: RinnaiService;
   public readonly accessoryService!: AccessoryService;
   public readonly mqttService!: MqttService;
+  public readonly pushoverService!: PushoverService;
 
   constructor(
     public readonly log: Logger,
@@ -29,6 +31,7 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
       this.service = new RinnaiService(this);
       this.accessoryService = new AccessoryService(this);
       this.mqttService = new MqttService(this);
+      this.pushoverService = new PushoverService(this);
 
       this.api.on('didFinishLaunching', () => {
         this.discoverDevices();
@@ -87,8 +90,11 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
       // Add/Remove accessories
       this.accessoryService.discover();
 
-      // MQTT
+      // Initialise MQTT
       this.mqttService.init();
+
+      // Initialise Pushover notifications
+      this.pushoverService.init();
 
     } catch (error) {
       this.log.error(error);

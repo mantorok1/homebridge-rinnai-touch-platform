@@ -211,6 +211,52 @@
             }
           }
         }
+      },
+      "pushover": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "title": "Application Token",
+            "type": "string",
+            "required": false
+          },
+          "users": {
+            "title": "User Keys",
+            "type": "array",
+            "items": {
+              "title": "User Key",
+              "type": "string"
+            }
+          },
+          "minTemperatureThreshold": {
+            "title": "Minimum Temperature Threshold",
+            "type": "number",
+            "minimum": 8,
+            "maximum": 30
+          },
+          "maxTemperatureThreshold": {
+            "title": "Maximum Temperature Threshold",
+            "type": "number",
+            "minimum": 8,
+            "maximum": 30
+          },
+          "connectionError": {
+            "title": "Connection Error",
+            "type": "boolean"
+          },
+          "faultDetected": {
+            "title": "Fault Detected",
+            "type": "boolean"
+          },
+          "dayIncorrect": {
+            "title": "Day Incorrect",
+            "type": "boolean"
+          },
+          "timeIncorrect": {
+            "title": "Time Incorrect",
+            "type": "boolean"
+          }
+        }
       }
     }
   },
@@ -317,6 +363,33 @@
             }
           ]
         }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Pushover Notifications",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        "pushover.token",
+        {
+          "type": "array",
+          "orderable": false,
+          "buttonText": "Add User Key",
+          "items": [
+            {
+              "type": "flex",
+              "flex-row": "row wrap",
+              "items": [ "pushover.users[]" ]
+            }
+          ]
+        },
+        "pushover.minTemperatureThreshold",
+        "pushover.maxTemperatureThreshold",
+        "pushover.connectionError",
+        "pushover.faultDetected",
+        "pushover.dayIncorrect",
+        "pushover.timeIncorrect"
       ]
     },
     {

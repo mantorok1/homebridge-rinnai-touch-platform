@@ -47,7 +47,8 @@
   "dependencies": {
     "async-mqtt": "^2.6.1",
     "concurrent-queue": "^7.0.2",
-    "jsonpath": "^1.0.2"
+    "jsonpath": "^1.0.2",
+    "pushover-notifications": "^1.2.2"
   },
   "devDependencies": {
     "@types/node": "^14.11.10",

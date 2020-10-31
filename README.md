@@ -17,6 +17,7 @@ Functions available:
 * Advancing to the next period of the Programme Schedule. (eg. Leave -> Return)
 * Switching between Manual and Schedule control modes
 * MQTT client. See [MQTT.md](src/mqtt/MQTT.md) for details.
+* Push Notifications. See "Pushover Notification Configuration" section
 
 ## Accessories
 
@@ -69,6 +70,7 @@ If you find the default config is not correct for your system or not to your lik
 |`showModuleStatus`|No|boolean|Include the module's status in the logs|`false`|
 |`clearCache`|No|boolean|Clear all the plugin's cached accessories from homebridge to force full discovery of accessories on restart|`false`|
 |`mqtt`|No|object|See [MQTT.md](src/mqtt/MQTT.md) for details||
+|`pushover`|No|object|See "Pushover Notification Configuration" for details||
 
 
 #### Example: Bare mimimum
@@ -120,6 +122,35 @@ This is useful if you only use Manual Control of your HVAC (ie. no programme sch
         "clearCache": false
       }
     ],
+
+### Pushover Notification Configuration
+This plugin can be configured to send Push notifications to your phone when certain events occur. To do this you'll need a [Pushover](https://pushover.net) account. The following describes the configuration options available:
+
+|Option|Required|Type|Description|Default Value (if not supplied)|
+|-|-|-|-|-|
+|`token`|Yes|string|Application API Token supplied by Pushover||
+|`users`|Yes|array|One or more User Keys supplied by Pushover. Each user will receive a push notification||
+|`minTemperatureThreshold`|No|number|Notification sent when temperature falls below this value||
+|`maxTemperatureThreshold`|No|number|Notification sent when temperature rises above this value||
+|`connectionError`|No|boolean|Notification sent when connection error occurs|`false`||
+|`faultDetected`|No|boolean|Notification sent when fault detected|`false`||
+|`dayIncorrect`|No|boolean|Notification sent when module and system day's are different|`false`||
+|`timeIncorrect`|No|boolean|Notification sent when module and system time differ by more than 2 minutes|`false`|
+
+#### Example: Pushover notifications
+
+    "pushover": {
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "users": [
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "minTemperatureThreshold": 15,
+      "maxTemperatureThreshold": 27,
+      "connectionError": true,
+      "faultDetected": true,
+      "dayIncorrect": false,
+      "timeIncorrect": false
+    },
 
 ## Version History
 

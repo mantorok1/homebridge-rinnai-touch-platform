@@ -29,6 +29,17 @@ export type MqttSettings = {
   }
 }
 
+type PushoverSettings = {
+  token: string,
+  users: string[],
+  minTemperatureThreshold?: number,
+  maxTemperatureThreshold?: number,
+  connectionError: boolean,
+  faultDetected: boolean,
+  dayIncorrect: boolean,
+  timeIncorrect: boolean,
+}
+
 export class Settings {
   private _mqtt?: MqttSettings;
 
@@ -117,5 +128,9 @@ export class Settings {
 
   get mqtt(): MqttSettings | undefined {
     return this._mqtt;
+  }
+
+  get pushover() : PushoverSettings | undefined {
+    return <PushoverSettings | undefined> this.config.pushover;
   }
 }

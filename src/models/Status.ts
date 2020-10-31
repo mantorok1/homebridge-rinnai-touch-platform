@@ -15,7 +15,7 @@ export class Status {
   }
 
   get mode(): string | undefined {
-    return this._statusJson === undefined
+    return this._statusJson === undefined || this._statusJson.length === 1
       ? undefined
       : Object.keys(this._statusJson[1])[0];
   }
@@ -31,6 +31,10 @@ export class Status {
 
     const index = (group1 === 'SYST') ? 0 : 1;
 
+    if (index === 1 && this._statusJson.length === 1) {
+      return;
+    }
+    
     return this._statusJson[index]?.[group1]?.[group2]?.[command];
   }
 
@@ -51,12 +55,7 @@ export class Status {
       return;
     }
 
-    if (this._statusJson.length !== 2) {
-      this._statusJson = undefined;
-      return;
-    }
-
-    if (this._statusJson[0] === undefined || this._statusJson[1] === undefined) {
+    if (this._statusJson[0] === undefined) {
       this._statusJson = undefined;
     }
   }

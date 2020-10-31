@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 * JSONPath option to extract temperature from JSON payload for MQTT Current Temperature Subscription
 * Show module's fault status in the log and publish to MQTT
 * Pushover notifications for temperature exceeding thresholds, connection errors, faults & incorrrect day/time
+* [FIX] Handle status when in "None" mode (ie. when controller is in Settings mode)
 
 ## 3.1.2 (2020-10-20)
 

@@ -200,6 +200,10 @@ export class RinnaiService extends events.EventEmitter {
   updateAll(status: Status): void {
     this.platform.log.debug(this.constructor.name, 'updateAll', 'status');
 
+    if (status.mode === undefined) {
+      return;
+    }
+
     const previousStates = JSON.stringify(this.states);
 
     this.updateMode(status);

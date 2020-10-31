@@ -167,18 +167,22 @@ export class RinnaiSession extends events.EventEmitter {
   private receiveMessage(message: Message) {
     this.platform.log.debug(this.constructor.name, 'receiveMessage', message.toString());
 
-    this.sequence = message.sequence!;
+    try {
+      this.sequence = message.sequence!;
 
-    if (message.status!.equals(this.status)) {
-      return;
+      if (message.status!.equals(this.status)) {
+        return;
+      }
+
+      if (this.platform.settings.showModuleStatus) {
+        this.platform.log.info(message.status!.toString());
+      }
+
+      this.status = message.status;
+      this.emit('status', message.status);
+    } catch(error) {
+      this.platform.log.error(error);
     }
-
-    if (this.platform.settings.showModuleStatus) {
-      this.platform.log.info(message.status!.toString());
-    }
-
-    this.status = message.status;
-    this.emit('status', message.status);
   }
 
   private async handleConnectionError(error: string): Promise<void> {

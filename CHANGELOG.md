@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## NEXT
+## 3.2.0 (2020-11-01)
 
 * New option to show module's status in logs & other minor improvements
 * JSONPath option to extract temperature from JSON payload for MQTT Current Temperature Subscription

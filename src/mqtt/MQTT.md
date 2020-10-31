@@ -5,7 +5,8 @@ The plugin is able to operate as an MQTT client. It publishes various topics con
 The following formats are supported:
 * Native Rinnai Touch
 * Home Assistant
-* Module Connection
+* Module Connection Status
+* Module Fault Status
 * Current Temperature Subscription
 
 ## Native Rinnai Touch
@@ -42,17 +43,25 @@ The payload is either a single value or a JSON object containing values for each
 
 where U is the common zone (if applicable)
 
-## Module Connection
+## Module Connection Status
 
 |Topic|Type|Payload|
 |-|-|-|
 |`connection/status/get`|Publish|Current TCP Connection status to the WiFi module. States can be `ok` or `error`|
 
+## Module Fault Status
+
+|Topic|Type|Payload|
+|-|-|-|
+|`fault/detected/get`|Publish|Has fault been detected. States can be `true` or `false`|
+|`fault/message/get`|Publish|Message containing details of the fault|
+
+
 ## Current Temperature Subscription
 
 This allows the plugin to receive the current temperature from external sources such as 3rd party temperature sensors via MQTT. Each zone can have their own temperature topic subscription. This can be useful when the WiFi module doesn't include the temperature in its status information or only reports a single temperature for all zones.
 
-An optional JSONPath can be defined to extract the temperature from a payload containing JSON. If the JSONPath is not supplied then the only the temperature (ie. a number) is assumed to be in the payload.
+An optional JSONPath can be defined to extract the temperature from a payload containing JSON. If the JSONPath is not supplied then only the temperature (ie. a number) is assumed to be in the payload. See [https://jsonpath.com](https://jsonpath.com) for more details.
 
 NOTE: The Topic Prefix is not used for these topics.
 
@@ -68,6 +77,8 @@ This section describes the configuration options for the plugin to operate as an
         "topicPrefix": "rinnai",
         "formatNative": false,
         "formatHomeAssistant": true,
+        "formatConnection": false,
+        "formatFault": true,
         "publishStatusChanged": false,
         "publishIntervals": true,
         "publishFrequency": 60,
@@ -78,7 +89,12 @@ This section describes the configuration options for the plugin to operate as an
             "A": "temp/a",
             "B": "temp/b",
             "C": "temp/c",
-            "D": "temp/d"
+            "D": "temp/d",
+            "jsonPathU": "$.temperature",
+            "jsonPathA": "$.temperature",
+            "jsonPathB": "$.temperature",
+            "jsonPathC": "$.temperature",
+            "jsonPathD": "$.temperature",
         }
     },
 
@@ -91,6 +107,8 @@ This section describes the configuration options for the plugin to operate as an
 |`topicPrefix`|No|string|Optional text to prefix to each topic name||
 |`formatNative`|No|boolean|Enable Native Rinnai Touch message format|`false`|
 |`formatHomeAssistant`|No|boolean|Enable Home Assistant message format|`false`|
+|`formatConnection`|No|boolean|Enable Connection Status message format|`false`|
+|`formatFault`|No|boolean|Enable Fault Status message format|`false`|
 |`publishStatusChanged`|No|boolean|Publish when status has changed|`false`|
 |`publishIntervals`|No|boolean|Publish at regular intervals|`false`|
 |`publishFrequency`|No|number|Publish frequency (secs)|`60`|

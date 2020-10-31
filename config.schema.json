@@ -136,6 +136,10 @@
             "title": "Module Connection",
             "type": "boolean"
           },
+          "formatFault": {
+            "title": "Fault Status",
+            "type": "boolean"
+          },          
           "publishStatusChanged": {
             "title": "When status has changed",
             "type": "boolean"
@@ -263,7 +267,8 @@
           "items": [
             "mqtt.formatNative",
             "mqtt.formatHomeAssistant",
-            "mqtt.formatConnection"
+            "mqtt.formatConnection",
+            "mqtt.formatFault"
           ]
         },
         {

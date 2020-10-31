@@ -4,6 +4,7 @@ import { RinnaiTouchPlatform } from '../platform';
 import { NativeFormat } from './NativeFormat';
 import { HomeAssistantFormat } from './HomeAssistantFormat';
 import { ConnectionFormat } from './ConnectionFormat';
+import { FaultFormat } from './FaultFormat';
 import { TemperatureFormat } from './TemperatureFormat';
 import { MqttSettings } from '../models/Settings';
 
@@ -48,6 +49,9 @@ export class MqttService {
       }
       if (this.settings.formatConnection) {
         this.formats.push(new ConnectionFormat(this.platform, this.client));
+      }
+      if (this.settings.formatFault) {
+        this.formats.push(new FaultFormat(this.platform, this.client));
       }
       if (this.settings.subscribeTemperature) {
         this.formats.push(new TemperatureFormat(this.platform, this.client));

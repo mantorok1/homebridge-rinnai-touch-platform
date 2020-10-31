@@ -4,6 +4,7 @@ import { RinnaiTouchPlatform } from '../platform';
 import { StateService } from './StateService';
 import { Status } from '../models/Status';
 import { Command } from '../models/Command';
+import { Fault } from '../models/Fault';
 
 export enum Modes {
   HEAT, COOL, EVAP,
@@ -20,6 +21,8 @@ export enum ScheduleOverrideModes {
 export class RinnaiService extends events.EventEmitter {
   private readonly stateService: StateService;
   private previousMode?: Modes;
+  private faultDetected = false;
+  private faultMessage?: string;
   public readonly AllZones = ['U', 'A', 'B', 'C', 'D'];
   private readonly ModeMap: Map<Modes, string> = new Map();
 
@@ -82,6 +85,8 @@ export class RinnaiService extends events.EventEmitter {
       this.updateStates();
 
       this.platform.session.on('status', this.updateAll.bind(this));
+      
+      this.on('fault', this.handleFault.bind(this));
     } catch (error) {
       this.platform.log.error(error);
       throw error;
@@ -221,6 +226,12 @@ export class RinnaiService extends events.EventEmitter {
 
     if (previousStates !== JSON.stringify(this.states)) {
       this.emit('updated');
+    }
+
+    const fault = new Fault(status);
+    if (fault.detected || this.faultDetected) {
+      this.faultDetected = fault.detected;
+      this.emit('fault', fault);
     }
   }
 
@@ -594,6 +605,23 @@ export class RinnaiService extends events.EventEmitter {
       await this.sendRequest(path, state);
     } catch (error) {
       this.platform.log.error(error);
+    }
+  }
+
+  handleFault(fault: Fault) {
+    this.platform.log.debug(this.constructor.name, 'fault', fault.toString());
+
+    const faultMessage = fault.toString();
+
+    if (fault.detected && this.faultMessage !== faultMessage) {
+      this.platform.log.warn(faultMessage);
+      this.faultMessage = faultMessage;
+      return;
+    }
+
+    if (!fault.detected && this.faultMessage !== undefined) {
+      this.platform.log.warn(faultMessage);
+      this.faultMessage = undefined;
     }
   }
 

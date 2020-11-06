@@ -134,8 +134,8 @@ This plugin can be configured to send Push notifications to your phone when cert
 |`maxTemperatureThreshold`|No|number|Notification sent when temperature rises above this value||
 |`connectionError`|No|boolean|Notification sent when connection error occurs|`false`||
 |`faultDetected`|No|boolean|Notification sent when fault detected|`false`||
-|`dayIncorrect`|No|boolean|Notification sent when module and system day's are different|`false`||
-|`timeIncorrect`|No|boolean|Notification sent when module and system time differ by more than 2 minutes|`false`|
+|`dayIncorrect`|No|boolean|Notification sent when controller and system day's are different|`false`||
+|`timeIncorrect`|No|boolean|Notification sent when controller and system time differ by more than 3 minutes|`false`|
 
 #### Example: Pushover notifications
 

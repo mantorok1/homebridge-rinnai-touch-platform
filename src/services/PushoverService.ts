@@ -9,6 +9,7 @@ export class PushoverService {
   private readonly token?: string;
   private readonly users: string[] = [];
   private readonly days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  private zones: string[] = ['U'];
   private minTemperatureThreshold?: number;
   private maxTemperatureThreshold?: number;
   private connectionError = false;
@@ -42,8 +43,11 @@ export class PushoverService {
 
     this.token = this.platform.settings.pushover.token;
     this.users = this.platform.settings.pushover.users;
+    if (this.platform.service.hasMultiSetPoint) {
+      this.zones = this.platform.service.zones;
+    }
   }
-
+  
   init() {
     this.platform.log.debug(this.constructor.name, 'init');
 
@@ -75,24 +79,26 @@ export class PushoverService {
       return;
     }
 
-    for(const zone of this.platform.service.AllZones) {
+    for(const zone of this.zones) {
       const temperature = this.platform.service.getCurrentTemperature(zone);
       if (temperature === 0) {
         continue;
       }
       const zoneName = zone === 'U'
-        ? 'Common Zone'
-        : this.platform.service.getZoneName(zone);
+        ? ''
+        : `[${this.platform.service.getZoneName(zone)}]`;
       
       // Min Temp Threshold
       if (this.minTemperatureThreshold !== undefined) {
         if (temperature < this.minTemperatureThreshold) {
           if (!(this.minTemperatureThresholdSent.get(zone) ?? false)) {
-            this.sendMessage(`Temperature is below ${this.minTemperatureThreshold} degrees in ${zoneName}`);
+            this.sendMessage(`Temperature is below ${this.minTemperatureThreshold} degrees ${zoneName}`);
             this.minTemperatureThresholdSent.set(zone, true);
           }
         } else {
-          this.minTemperatureThresholdSent.set(zone, false);
+          if (temperature > this.minTemperatureThreshold + 1) {
+            this.minTemperatureThresholdSent.set(zone, false);
+          }
         }
       }
 
@@ -100,11 +106,13 @@ export class PushoverService {
       if (this.maxTemperatureThreshold !== undefined) {
         if (temperature > this.maxTemperatureThreshold) {
           if (!(this.maxTemperatureThresholdSent.get(zone) ?? false)) {
-            this.sendMessage(`Temperature is above ${this.maxTemperatureThreshold} degrees in ${zoneName}`);
+            this.sendMessage(`Temperature is above ${this.maxTemperatureThreshold} degrees ${zoneName}`);
             this.maxTemperatureThresholdSent.set(zone, true);
           }
         } else {
-          this.maxTemperatureThresholdSent.set(zone, false);
+          if (temperature < this.maxTemperatureThreshold - 1) {
+            this.maxTemperatureThresholdSent.set(zone, false);
+          }
         }
       }
     }
@@ -171,13 +179,14 @@ export class PushoverService {
       day_offset = 1;
     }
 
-    const module_date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + day_offset, module_hours, module_minutes);
+    const module_date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + day_offset,
+      module_hours, module_minutes, now.getSeconds());
 
     if (this.dayIncorrect && day_offset === 0) {
       const system_day = this.days[now.getDay()];
       if (system_day !== module_day) {
         if (!this.dayMessageSent) {
-          this.sendMessage(`Module's day (${module_day}) is different to system day (${system_day})`);
+          this.sendMessage(`Controller's day (${module_day}) is different to system day (${system_day})`);
           this.dayMessageSent = true;
         }
       } else {
@@ -187,13 +196,16 @@ export class PushoverService {
 
     if (this.timeIncorrect) {
       const timeDifference = Math.abs(now.getTime() - module_date.getTime());
-      if (timeDifference > 120000) { // 2+ minutes out of sync
+     
+      if (timeDifference > 180000) { // 3+ minutes out of sync
         if (!this.timeMessageSent) {
-          this.sendMessage('Modules\'s time is more than 2 minutes out of sync with system time');
+          this.sendMessage(`Controller's time (${module_time}) is more than 3 minutes out of sync with system time`);
           this.timeMessageSent = true;
         }
       } else {
-        this.timeMessageSent = false;
+        if (timeDifference < 120000) {
+          this.timeMessageSent = false;
+        }
       }
     }
   }

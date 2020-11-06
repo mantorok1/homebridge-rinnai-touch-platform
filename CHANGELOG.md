@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## NEXT
+
+* Minor tweaks to Pushover notification events
+
 ## 3.2.0 (2020-11-01)
 
 * New option to show module's status in logs & other minor improvements

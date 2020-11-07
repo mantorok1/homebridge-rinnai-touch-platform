@@ -5,7 +5,7 @@ import { RinnaiTouchPlatform } from '../platform';
 import { TcpService, ModuleAddress } from './TcpService';
 import { Message } from '../models/Message';
 import { Status } from '../models/Status';
-import { Command } from '../models/Command';
+import { Commands } from '../models/Commands';
 
 export class RinnaiSession extends events.EventEmitter {
   private tcp: TcpService;
@@ -67,7 +67,7 @@ export class RinnaiSession extends events.EventEmitter {
 
     // Ping module
     this.pingIntervalId = setInterval(async () => {
-      await this.sendCommand(new Command());
+      await this.sendCommands(new Commands());
     }, 60000);
   }
 
@@ -91,35 +91,35 @@ export class RinnaiSession extends events.EventEmitter {
     return this.status;
   }
 
-  async sendCommand(command: Command): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'sendCommand', command.toString());
+  async sendCommands(commands: Commands): Promise<void> {
+    this.platform.log.debug(this.constructor.name, 'sendCommands', commands.toString());
 
     try {
-      await this.queue(command);
+      await this.queue(commands);
     } catch (error) {
       this.platform.log.error(error);
       throw error;
     }
   }
 
-  private async process(command: Command): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'process', command.toString());
+  private async process(commands: Commands): Promise<void> {
+    this.platform.log.debug(this.constructor.name, 'process', commands.toString());
 
     try {
-      const payload = command.toCommand(this.nextSequence);
+      const payload = commands.toCommand(this.nextSequence);
 
-      if (this.platform.settings.showModuleEvents && !command.isPing) {
+      if (this.platform.settings.showModuleEvents && !commands.isPing) {
         this.platform.log.info(`Sending: ${payload}`);
       }
 
       for (let i = 1; i <= 3; i++) {
         await this.tcp.write(payload);
 
-        if (command.isPing) {
+        if (commands.isPing) {
           return;
         }
 
-        const success: boolean = await this.commandSucceeded(command);
+        const success: boolean = await this.commandSucceeded(commands);
         if (success) {
           return;
         }
@@ -131,8 +131,8 @@ export class RinnaiSession extends events.EventEmitter {
     }
   }
 
-  private async commandSucceeded(command: Command): Promise<boolean> {
-    this.platform.log.debug(this.constructor.name, 'commandSucceeded', command.toString());
+  private async commandSucceeded(commands: Commands): Promise<boolean> {
+    this.platform.log.debug(this.constructor.name, 'commandSucceeded', commands.toString());
 
     let checkStatus: (status: Status) => void;
 
@@ -146,7 +146,7 @@ export class RinnaiSession extends events.EventEmitter {
         }, 10000);
 
         checkStatus = (status: Status) => {
-          if (status.hasState(command.group1, command.group2, command.command, command.state)) {
+          if (status.hasStates(commands.group1, commands.group2, commands.commands, commands.states)) {
             clearTimeout(timerId);
             if (this.platform.settings.showModuleEvents) {
               this.platform.log.info(`Command succeeded. Took ${Date.now() - startTime} ms`);
@@ -212,7 +212,7 @@ export class RinnaiSession extends events.EventEmitter {
     return nextSequence;
   }
 
-  private async delay(ms: number): Promise<void> {
+  async delay(ms: number): Promise<void> {
     await new Promise((resolve) => {
       setTimeout(resolve, ms);
     });

@@ -3,7 +3,7 @@ import events = require('events');
 import { RinnaiTouchPlatform } from '../platform';
 import { StateService } from './StateService';
 import { Status } from '../models/Status';
-import { Command } from '../models/Command';
+import { Commands } from '../models/Commands';
 import { Fault } from '../models/Fault';
 
 export enum Modes {
@@ -25,6 +25,7 @@ export class RinnaiService extends events.EventEmitter {
   private faultMessage?: string;
   public readonly AllZones = ['U', 'A', 'B', 'C', 'D'];
   private readonly ModeMap: Map<Modes, string> = new Map();
+  private readonly days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   private readonly states: Record<string, unknown> = {
     ZoneName: { U: 'Common' },
@@ -52,7 +53,7 @@ export class RinnaiService extends events.EventEmitter {
         this.platform.session.once('status', resolve);
       });
 
-      const status = this.platform.session.getStatus();
+      let status = this.platform.session.getStatus();
       if (status === undefined) {
         throw new Error('Unable to obtain a valid status from the Rinnai Touch module');
       }
@@ -68,6 +69,12 @@ export class RinnaiService extends events.EventEmitter {
         (<Record<string, string>>this.states.ZoneName)[zone] = name.trim() === ''
           ? `Zone ${zone}`
           : name.trim();
+      }
+
+      // Check that controller is in Normal Operating state
+      status = await this.checkOperatingState(status);
+      if (status === undefined) {
+        throw new Error('Unable to obtain a valid status from the Rinnai Touch module');
       }
 
       // Controllers
@@ -91,6 +98,24 @@ export class RinnaiService extends events.EventEmitter {
       this.platform.log.error(error);
       throw error;
     }
+  }
+
+  private async checkOperatingState(status: Status): Promise<Status | undefined> {
+    this.platform.log.debug(this.constructor.name, 'checkOperatingState');
+
+    let operatingState = <string>this.stateService.getState('OperatingState', status);
+    let currentStatus: Status | undefined = status;
+    while (operatingState !== 'N') {
+      this.platform.log.warn('Controller is not in normal operating state. Will wait for 1 minute');
+      await this.platform.session.delay(60000);
+      currentStatus = this.platform.session.getStatus();
+      if (currentStatus === undefined) {
+        return;
+      }
+      operatingState = <string>this.stateService.getState('OperatingState', currentStatus);
+    }
+
+    return currentStatus;
   }
 
   //
@@ -179,6 +204,10 @@ export class RinnaiService extends events.EventEmitter {
     return <boolean>this.states.PumpState;
   }
 
+  getOperatingState(): string {
+    return <string>this.states.OperatingState;
+  }
+
   //
   // Updaters
   //
@@ -199,6 +228,8 @@ export class RinnaiService extends events.EventEmitter {
 
   updateAll(status: Status): void {
     this.platform.log.debug(this.constructor.name, 'updateAll', 'status');
+
+    this.updateOperatingState(status);
 
     if (status.mode === undefined) {
       return;
@@ -395,6 +426,12 @@ export class RinnaiService extends events.EventEmitter {
     const state = this.stateService.getState('PumpState', status);
 
     this.states.PumpState = state === 'N';
+  }
+
+  updateOperatingState(status: Status): void {
+    const state = this.stateService.getState('OperatingState', status);
+
+    this.states.OperatingState = state;
   }
 
   //
@@ -612,6 +649,50 @@ export class RinnaiService extends events.EventEmitter {
     }
   }
 
+  async setOperatingState(value: string): Promise<void> {
+    this.platform.log.debug(this.constructor.name, 'setOperatingState', value);
+
+    try {
+      this.updateStates();
+
+      if (this.getOperatingState() === value) {
+        return;
+      }
+
+      const path = this.stateService.getPath('OperatingState');
+
+      await this.sendRequest(path, value);
+    } catch (error) {
+      this.platform.log.error(error);
+    }
+  }
+
+  // NOTE: This is not currently working
+  async setDayTime(): Promise<void> {
+    this.platform.log.debug(this.constructor.name, 'setDayTime');
+
+    try {
+      const now = new Date();
+      const day = this.days[now.getDay()];
+      const time = now.getHours().toString().padStart(2, '0') + ':'
+        + now.getMinutes().toString().padStart(2, '0');
+
+      const paths: string[] = [
+        this.stateService.getPath('SetDay')!,
+        this.stateService.getPath('SetTime')!];
+      const states = [day, time];
+
+      this.platform.log.warn('Current Day & Time', day, time);
+
+      await this.setOperatingState('C');
+      await this.sendRequests(paths, states);
+      await this.sendRequest(this.stateService.getPath('SetSave')!, 'Y');
+      await this.setOperatingState('N');
+    } catch (error) {
+      this.platform.log.error(error);
+    }
+  }
+
   handleFault(fault: Fault) {
     this.platform.log.debug(this.constructor.name, 'fault', fault.toString());
 
@@ -645,8 +726,28 @@ export class RinnaiService extends events.EventEmitter {
     }
 
     try {
-      const command = new Command(path, state);
-      await this.platform.session.sendCommand(command);
+      const commands = Commands.fromPath(path, state);
+      if (commands !== undefined) {
+        await this.platform.session.sendCommands(commands);
+      }
+    } catch (error) {
+      this.platform.log.error(error);
+    }
+  }
+
+  async sendRequests(paths?: string[], states?: string[]): Promise<void> {
+    this.platform.log.debug(this.constructor.name, 'sendRequests', paths, states);
+
+    if (paths === undefined || states === undefined) {
+      this.platform.log.warn('Invalid request. Cannot send');
+      return;
+    }
+
+    try {
+      const commands = Commands.fromPaths(paths, states);
+      if (commands !== undefined) {
+        await this.platform.session.sendCommands(commands);
+      }
     } catch (error) {
       this.platform.log.error(error);
     }

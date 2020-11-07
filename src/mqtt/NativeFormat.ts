@@ -2,7 +2,7 @@ import mqtt = require('async-mqtt');
 
 import { RinnaiTouchPlatform } from '../platform';
 import { IMqttFormat } from './MqttService';
-import { Command } from '../models/Command';
+import { Commands } from '../models/Commands';
 import { Status } from '../models/Status';
 
 export class NativeFormat implements IMqttFormat {
@@ -36,8 +36,10 @@ export class NativeFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'process', topic, payload);
 
     try {
-      const command = new Command(undefined, undefined, payload);
-      this.platform.session.sendCommand(command);
+      const commands = Commands.fromJsonString(payload);
+      if (commands !== undefined) {
+        this.platform.session.sendCommands(commands);
+      }
     } catch (error) {
       this.platform.log.error(error);
     }

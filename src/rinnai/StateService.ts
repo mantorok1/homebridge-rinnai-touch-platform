@@ -10,6 +10,10 @@ export class StateService {
     HasCooler: 'SYST.AVM.CG',
     HasEvap: 'SYST.AVM.EC',
     Mode: 'SYST.OSS.MD',
+    OperatingState: 'SYST.OSS.ST',
+    SetDay: 'SYST.STM.DY',
+    SetTime: 'SYST.STM.TM',
+    SetSave: 'SYST.STM.SV',
   };
 
   private heatCoolPaths: Record<string, string> = {

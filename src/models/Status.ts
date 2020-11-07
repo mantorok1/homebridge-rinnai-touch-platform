@@ -42,6 +42,15 @@ export class Status {
     return this.getState(group1, group2, command) === state;
   }
 
+  hasStates(group1: string, group2: string, commands: string[], states: string[]): boolean {
+    for(let i = 0; i < commands.length; i++) {
+      if (this.getState(group1, group2, commands[i]) !== states[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   toString(): string {
     return this._statusString ?? '';
   }

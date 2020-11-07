@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## NEXT
+## 3.2.1 (2020-11-07)
 
 * Minor tweaks to Pushover notification events
 * [FIX] Plugin doesn't start properly when controller in Settings mode 

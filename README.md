@@ -65,6 +65,7 @@ If you find the default config is not correct for your system or not to your lik
 |`showAuto`|No|boolean|Show the `AUTO` option in the Thermostat menu|`true`|
 |`showAdvanceSwitches`|No|boolean|Show the Advance Period switch accessory in the Home app|`true`|
 |`showManualSwitches`|No|boolean|Show the Manual switch accessory in the Home app|`true`|
+|`invertComfortLevel`|No|boolean|Invert the Comfort Level when setting temperature (ie. Increasing temperature on Thermostat will decrease the Comfort Level of the Evaporative Cooling)|`true`|
 |`showHomebridgeEvents`|No|boolean|Include the homebridge events such as getting and setting characterics in the logs|`true`|
 |`showModuleEvents`|No|boolean|Include the module's events (eg. commands sent) in the logs|`true`|
 |`showModuleStatus`|No|boolean|Include the module's status in the logs|`false`|

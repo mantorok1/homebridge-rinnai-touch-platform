@@ -347,7 +347,7 @@ export class RinnaiService extends events.EventEmitter {
       const state = this.stateService.getState('TargetTemp', status, zone);
       if (state) {
         states[zone] = this.mode === Modes.EVAP
-          ? Math.round((parseInt(state) - 19) / 15 * 22 + 8) // Convert Comfort level to Temperature
+          ? this.toTemperature(state)
           : parseInt(state);
       }
     }
@@ -548,7 +548,7 @@ export class RinnaiService extends events.EventEmitter {
       const mode = this.getRinnaiTouchMode();
       const path = this.stateService.getPath('TargetTemp', mode, zone);
       const state = this.mode === Modes.EVAP
-        ? Math.round((1 - ((value - 8) / 22)) * 15 + 19)
+        ? this.toComfortLevel(value)
         : value;
 
       await this.sendRequest(path, state.toString().padStart(2, '0'));
@@ -751,5 +751,21 @@ export class RinnaiService extends events.EventEmitter {
     } catch (error) {
       this.platform.log.error(error);
     }
+  }
+
+  toComfortLevel(temperature: number): number {
+    let ratio = (temperature - 8) / 22;
+    if (this.platform.settings.invertComfortLevel) {
+      ratio = 1 - ratio;
+    }
+    return Math.round(ratio * 15 + 19);
+  }
+
+  toTemperature(comfortLevel: string): number {
+    let ratio = (parseInt(comfortLevel) - 19) / 15;
+    if (this.platform.settings.invertComfortLevel) {
+      ratio = 1 - ratio;
+    }
+    return Math.round(ratio * 22 + 8);
   }
 }

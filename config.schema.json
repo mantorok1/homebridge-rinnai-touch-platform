@@ -73,6 +73,12 @@
         "default": true,
         "required": false
       },
+      "invertComfortLevel": {
+        "title": "Invert Comfort Level when setting temperature (for Evaporative Cooling)",
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
       "showHomebridgeEvents": {
         "title": "Show Homebridge events in the log",
         "type": "boolean",
@@ -281,7 +287,8 @@
         "showFan",
         "showAuto",
         "showAdvanceSwitches",
-        "showManualSwitches"
+        "showManualSwitches",
+        "invertComfortLevel"
       ]
     },
     {

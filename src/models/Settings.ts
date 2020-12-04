@@ -110,6 +110,10 @@ export class Settings {
     return <boolean | undefined>this.config.showManualSwitches ?? true;
   }
 
+  get invertComfortLevel(): boolean {
+    return <boolean | undefined>this.config.invertComfortLevel ?? true;
+  }
+
   get showHomebridgeEvents(): boolean {
     return <boolean | undefined>this.config.showHomebridgeEvents ?? true;
   }

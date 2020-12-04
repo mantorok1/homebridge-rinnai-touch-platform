@@ -60,12 +60,13 @@ If you find the default config is not correct for your system or not to your lik
 |`address`|No|string|IP Address of the WiFi module<br/>NOTE: leave blank for auto discovery||
 |`port`|No|number|Port to use for the WiFI module<br/>NOTE: leave blank for auto discovery|`27847`|
 |`controllerType`|No|string|The type of accessory to use for the controller(s). Options are:<br/>`T` for Thermostat<br/>`H` for Heater Cooler|`T`|
-|`zoneType`|No|string|The type of accessory to use for controlling zones (only applicable for Single Temperature Set Point). Options are:<br>`N` for None (ie. don't show any accessory for zones<br/>`S` for Switch<br/>`H` for Heater Cooler|`S`|
+|`zoneType`|No|string|The type of accessory to use for controlling zones (only applicable for Single Temperature Set Point). Options are:<br>`N` for None (ie. hide accessory for zones)<br/>`S` for Switch<br/>`H` for Heater Cooler|`S`|
 |`showFan`|No|boolean|Show the fan accessory in the Home app|`true`|
 |`showAuto`|No|boolean|Show the `AUTO` option in the Thermostat menu|`true`|
 |`showAdvanceSwitches`|No|boolean|Show the Advance Period switch accessory in the Home app|`true`|
 |`showManualSwitches`|No|boolean|Show the Manual switch accessory in the Home app|`true`|
-|`invertComfortLevel`|No|boolean|Invert the Comfort Level when setting temperature (ie. Increasing temperature on Thermostat will decrease the Comfort Level of the Evaporative Cooling)|`true`|
+|`invertComfortLevel`|No|boolean|Invert the Comfort Level when setting temperature (ie. Increasing temperature on Thermostat will decrease the Comfort Level of the Evaporative Cooler)|`true`|
+|`setAutoOperatingState`|No|boolean|Set Operating state to `AUTO` when setting temperature (for Evaporative Cooler only)|`true`|
 |`showHomebridgeEvents`|No|boolean|Include the homebridge events such as getting and setting characterics in the logs|`true`|
 |`showModuleEvents`|No|boolean|Include the module's events (eg. commands sent) in the logs|`true`|
 |`showModuleStatus`|No|boolean|Include the module's status in the logs|`false`|

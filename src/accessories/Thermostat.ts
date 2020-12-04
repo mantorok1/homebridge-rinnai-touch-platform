@@ -196,7 +196,11 @@ export class Thermostat extends ThermostatBase {
   async setTargetTemperature(value: number): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setTargetTemperature', value);
 
-    if (this.platform.service.mode === Modes.EVAP) {
+    if (this.getTargetTemperature() === value) {
+      return;
+    }
+
+    if (this.platform.service.mode === Modes.EVAP && this.platform.settings.setAutoOperatingState) {
       await this.platform.service.setControlMode(ControlModes.AUTO);
     }
 

@@ -74,7 +74,13 @@
         "required": false
       },
       "invertComfortLevel": {
-        "title": "Invert Comfort Level when setting temperature (for Evaporative Cooling)",
+        "title": "Invert Comfort Level when setting temperature",
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
+      "setAutoOperatingState": {
+        "title": "Set Operating state to 'AUTO' when setting temperature",
         "type": "boolean",
         "default": true,
         "required": false
@@ -287,8 +293,17 @@
         "showFan",
         "showAuto",
         "showAdvanceSwitches",
-        "showManualSwitches",
-        "invertComfortLevel"
+        "showManualSwitches"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Evaporative Cooler Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        "invertComfortLevel",
+        "setAutoOperatingState"
       ]
     },
     {

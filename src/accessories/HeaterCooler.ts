@@ -245,13 +245,17 @@ export class HeaterCooler extends ThermostatBase {
   async setThresholdTemperature(value: number): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setThresholdTemperature', value);
 
+    if (this.getThresholdTemperature() === value) {
+      return;
+    }
+
     const zone = this.platform.service.hasMultiSetPoint
       ? this.platformAccessory.context.zone
       : 'U';
 
     await this.setModeComplete();
 
-    if (this.platform.service.mode === Modes.EVAP) {
+    if (this.platform.service.mode === Modes.EVAP && this.platform.settings.setAutoOperatingState) {
       await this.platform.service.setControlMode(ControlModes.AUTO);
     }
     await this.platform.service.setTargetTemperature(value, zone);

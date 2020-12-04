@@ -114,6 +114,10 @@ export class Settings {
     return <boolean | undefined>this.config.invertComfortLevel ?? true;
   }
 
+  get setAutoOperatingState(): boolean {
+    return <boolean | undefined>this.config.setAutoOperatingState ?? true;
+  }
+
   get showHomebridgeEvents(): boolean {
     return <boolean | undefined>this.config.showHomebridgeEvents ?? true;
   }

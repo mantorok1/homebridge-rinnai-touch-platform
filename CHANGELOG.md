@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## NEXT
+## 3.2.2 (2020-12-05)
 
 * Add build on node 14.x & issue templates
 * Add "Invert Comfort Level" setting (for Evaporative Cooler)

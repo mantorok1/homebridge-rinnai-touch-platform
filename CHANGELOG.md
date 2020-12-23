@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.2.3 (2020-12-24)
+
+* Update dependencies, one of which had a low severity vulnerability
+
 ## 3.2.2 (2020-12-05)
 
 * Add build on node 14.x & issue templates

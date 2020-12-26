@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.2.4 (2020-12-27)
+
+* MQTT: Republish current state when command cannot be performed 
+
 ## 3.2.3 (2020-12-24)
 
 * Update dependencies, one of which had a low severity vulnerability

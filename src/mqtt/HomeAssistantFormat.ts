@@ -66,6 +66,7 @@ export class HomeAssistantFormat implements IMqttFormat {
     try {
       if (!this.platform.service.getFanState()) {
         this.platform.log.warn('MQTT: Setting fan mode only supported for "fan_only" mode');
+        await this.publishTopics();
         return;
       }
 
@@ -82,6 +83,7 @@ export class HomeAssistantFormat implements IMqttFormat {
           break;
         default:
           this.platform.log.warn(`MQTT: Invalid fan mode '${payload}' in payload`);
+          await this.publishTopics();
           return;
       }
   
@@ -116,6 +118,7 @@ export class HomeAssistantFormat implements IMqttFormat {
           break;
         default:
           this.platform.log.warn(`MQTT: Invalid mode '${payload}' in payload`);
+          await this.publishTopics();
           return;
       }  
     } catch(error) {
@@ -129,6 +132,7 @@ export class HomeAssistantFormat implements IMqttFormat {
     try {
       if (!this.platform.service.getState() || this.platform.service.getFanState()) {
         this.platform.log.warn('MQTT: Setting temperature only supported for "heat" and "cool" modes');
+        await this.publishTopics();
         return;
       }
 
@@ -137,11 +141,15 @@ export class HomeAssistantFormat implements IMqttFormat {
         for (const zone in json) {
           if (this.isValidTemperature(json[zone])) {
             await this.platform.service.setTargetTemperature(json[zone], zone);
+          } else {
+            await this.publishTopics();
           }
         }
       } else {
         if (this.isValidTemperature(json)) {
           await this.platform.service.setTargetTemperature(json);
+        } else {
+          await this.publishTopics();
         }
       }
     } catch (error) {
@@ -220,6 +228,7 @@ export class HomeAssistantFormat implements IMqttFormat {
     try {
       if (!this.platform.service.getState() && !this.platform.service.getFanState()) {
         this.platform.log.warn('MQTT: Setting manual operation not supported for "off" mode');
+        await this.publishTopics();
         return;
       }
 

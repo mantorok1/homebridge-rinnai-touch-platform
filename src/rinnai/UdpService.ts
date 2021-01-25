@@ -1,6 +1,5 @@
 import dgram = require('dgram');
-
-import { RinnaiTouchPlatform } from '../platform';
+import { ILogging } from './ILogging';
 
 export type ModuleAddress = {
   address: string;
@@ -8,16 +7,18 @@ export type ModuleAddress = {
 }
 
 export class UdpService {
-  private readonly port: number = 50000;
+  private readonly log: ILogging;
+  private readonly port: number;
+  private readonly timeout: number;
 
-  constructor(
-    private readonly platform: RinnaiTouchPlatform,
-    private readonly timeout: number = 5000,
-  ) {
+  constructor(options: {log?: ILogging, port?: number, timeout?: number} = {}) {
+    this.log = options.log ?? console;
+    this.port = options.port ?? 50000;
+    this.timeout = options.timeout ?? 5000;
   }
 
   getAddress(): Promise<ModuleAddress> {
-    this.platform.log.debug(this.constructor.name, 'getAddress');
+    this.log.debug(this.constructor.name, 'getAddress');
 
     return new Promise((resolve, reject) => {
       const socket: dgram.Socket = dgram.createSocket('udp4');
@@ -34,7 +35,7 @@ export class UdpService {
           socket.removeAllListeners();
           socket.close();
           const port = message[32] * 256 + message[33];
-          this.platform.log.info(`Found: Rinnai Touch module [${remote.address}:${port}]`);
+          this.log.info(`Found: Rinnai Touch module [${remote.address}:${port}]`);
           resolve({
             address: remote.address,
             port: port,

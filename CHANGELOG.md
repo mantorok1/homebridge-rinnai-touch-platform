@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## NEXT
+
+* Major code refactor to resolve commands at send time rather than request time
+* Deprecate 'Native' MQTT format
+* [FIX] Push notifications not being sent for TCP/IP connection errors
+
 ## 3.2.4 (2020-12-27)
 
 * MQTT: Republish current state when command cannot be performed 

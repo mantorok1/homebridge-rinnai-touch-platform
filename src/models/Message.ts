@@ -1,9 +1,6 @@
-
-import { Status } from './Status';
-
 export class Message {
   private _sequence: number | undefined;
-  private _status: Status | undefined;
+  private _status: string | undefined;
 
   constructor(message: Buffer | string) {
     try {
@@ -21,7 +18,7 @@ export class Message {
       }
   
       this._sequence = parseInt(message.substr(start, 6));
-      this._status = new Status(message.substr(start + 6));
+      this._status = message.substr(start + 6);
     } catch {
       this._sequence = undefined;
       this._status = undefined;
@@ -32,7 +29,7 @@ export class Message {
     return this._sequence;
   }
 
-  get status(): Status | undefined {
+  get status(): string | undefined {
     return this._status;
   }
 
@@ -42,7 +39,7 @@ export class Message {
 
   toString(): string {
     return this.isValid
-      ? `${this._sequence}:${this._status?.toString()}`
+      ? `${this._sequence}:${this._status}`
       : 'invalid';
   }
 }

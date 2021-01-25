@@ -2,12 +2,17 @@ import mqtt = require('async-mqtt');
 
 import { RinnaiTouchPlatform } from '../platform';
 import { IMqttFormat } from './MqttService';
-import { Modes, ControlModes } from '../rinnai/RinnaiService';
+import { OperatingModes, ControlModes } from '../rinnai/RinnaiService';
 
 export class HomeAssistantFormat implements IMqttFormat {
   private readonly subTopics: Map<string, (topic: string, payload: string) => Promise<void>> = new Map();
   private readonly topicPayloads: Map<string, string> = new Map();
   private readonly prefix: string;
+  private readonly modeMap: Record<string, OperatingModes> = {
+    'heat': OperatingModes.HEATING,
+    'cool': OperatingModes.COOLING,
+    'evap': OperatingModes.EVAPORATIVE_COOLING,
+  };
 
   constructor(
     private readonly platform: RinnaiTouchPlatform,
@@ -37,7 +42,10 @@ export class HomeAssistantFormat implements IMqttFormat {
 
     // Publish on status change
     if (this.platform.settings.mqtt!.publishStatusChanged) {
-      this.platform.service.on('updated', () => {
+      this.platform.service.session.on('status', () => {
+        this.publishTopics();
+      });
+      this.platform.temperatureService.on('temperature_change', () => {
         this.publishTopics();
       });
     }
@@ -99,22 +107,24 @@ export class HomeAssistantFormat implements IMqttFormat {
     try {
       switch (payload) {
         case 'fan_only':
-          await this.platform.service.setState(false);
+          await this.platform.service.setPowerState(false);
           await this.platform.service.setFanState(true);
           break;
         case 'off':
-          await this.platform.service.setState(false);
+          await this.platform.service.setPowerState(false);
           await this.platform.service.setFanState(false);
           break;
         case 'heat':
           await this.platform.service.setFanState(false);
-          await this.platform.service.setMode(Modes.HEAT);
-          await this.platform.service.setState(true);
+          await this.platform.service.setOperatingMode(OperatingModes.HEATING);
+          await this.platform.service.setPowerState(true);
           break;
         case 'cool':
           await this.platform.service.setFanState(false);
-          await this.platform.service.setMode(this.platform.service.hasEvaporative ? Modes.EVAP : Modes.COOL);
-          await this.platform.service.setState(true);
+          await this.platform.service.setOperatingMode(this.platform.service.getHasEvaporative()
+            ? OperatingModes.EVAPORATIVE_COOLING
+            : OperatingModes.COOLING);
+          await this.platform.service.setPowerState(true);
           break;
         default:
           this.platform.log.warn(`MQTT: Invalid mode '${payload}' in payload`);
@@ -130,7 +140,7 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'setTemperature', topic, payload);
 
     try {
-      if (!this.platform.service.getState() || this.platform.service.getFanState()) {
+      if (!this.platform.service.getPowerState() || this.platform.service.getFanState()) {
         this.platform.log.warn('MQTT: Setting temperature only supported for "heat" and "cool" modes');
         await this.publishTopics();
         return;
@@ -140,14 +150,14 @@ export class HomeAssistantFormat implements IMqttFormat {
       if (typeof json === 'object') {
         for (const zone in json) {
           if (this.isValidTemperature(json[zone])) {
-            await this.platform.service.setTargetTemperature(json[zone], zone);
+            await this.platform.service.setSetPointTemperature(json[zone], zone);
           } else {
             await this.publishTopics();
           }
         }
       } else {
         if (this.isValidTemperature(json)) {
-          await this.platform.service.setTargetTemperature(json);
+          await this.platform.service.setSetPointTemperature(json);
         } else {
           await this.publishTopics();
         }
@@ -188,7 +198,8 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'setModeSwitch', topic, payload);
 
     try {
-      const mode: Modes = Modes[this.getTopicComponent(topic, -2).toUpperCase()];
+      const mode = this.getTopicComponent(topic, -2).toLowerCase();
+      const operatingMode: OperatingModes = this.modeMap[mode];
       const state: boolean = payload.toLowerCase() === 'on';
 
       if (this.platform.service.getFanState()) {
@@ -196,10 +207,10 @@ export class HomeAssistantFormat implements IMqttFormat {
       }
 
       if (state) {
-        await this.platform.service.setMode(mode);
-        await this.platform.service.setState(true);
+        await this.platform.service.setOperatingMode(operatingMode);
+        await this.platform.service.setPowerState(true);
       } else {
-        await this.platform.service.setState(false);
+        await this.platform.service.setPowerState(false);
       }
     } catch (error) {
       this.platform.log.error(error);
@@ -212,8 +223,9 @@ export class HomeAssistantFormat implements IMqttFormat {
     try {
       const state: boolean = payload.toLowerCase() === 'on';
 
-      if (state && this.platform.service.getState()) {
-        await this.platform.service.setState(false);
+      // TODO: This won't work for evap which must be on for fan to work ???
+      if (state && this.platform.service.getPowerState()) {
+        await this.platform.service.setPowerState(false);
       }
 
       await this.platform.service.setFanState(state);
@@ -223,10 +235,10 @@ export class HomeAssistantFormat implements IMqttFormat {
   }
 
   private async setSwitchManual(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setControlMode', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchManual', topic, payload);
 
     try {
-      if (!this.platform.service.getState() && !this.platform.service.getFanState()) {
+      if (!this.platform.service.getPowerState() && !this.platform.service.getFanState()) {
         this.platform.log.warn('MQTT: Setting manual operation not supported for "off" mode');
         await this.publishTopics();
         return;
@@ -256,7 +268,7 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publishTopics');
 
     try {
-      this.platform.service.updateStates();
+      // this.platform.service.updateStates();
 
       this.publishHvacAction();
       this.publishHvacCurrentTemperature();
@@ -276,7 +288,7 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publishHvacAction');
 
     const payload: Record<string, string> = {};
-    for(const zone of this.platform.service.zones) {
+    for(const zone of this.platform.service.getZonesInstalled()) {
       if (!this.platform.service.getUserEnabled(zone)) {
         payload[zone] = 'off';
         continue;
@@ -285,7 +297,7 @@ export class HomeAssistantFormat implements IMqttFormat {
         payload[zone] = 'fan';
         continue;
       }
-      if (!this.platform.service.getState()) {
+      if (!this.platform.service.getPowerState()) {
         payload[zone] = 'off';
         continue;
       }
@@ -293,7 +305,7 @@ export class HomeAssistantFormat implements IMqttFormat {
         payload[zone] = 'idle';
         continue;
       }
-      payload[zone] = this.platform.service.mode === Modes.HEAT
+      payload[zone] = this.platform.service.getOperatingMode() === OperatingModes.HEATING
         ? 'heating'
         : 'cooling';
     }
@@ -304,9 +316,10 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publishHvacCurrentTemperature');
 
     const payload: Record<string, number> = {};
-    for(const zone of this.platform.service.zones) {
-      if (this.platform.service.getCurrentTemperature(zone)) {
-        payload[zone] = this.platform.service.getCurrentTemperature(zone);
+    for(const zone of this.platform.service.getZonesInstalled()) {
+      const temperature = this.platform.temperatureService.getTemperature(zone);
+      if (temperature !== undefined) {
+        payload[zone] = temperature;
       }
     }
     this.publish('hvac/current_temperature/get', JSON.stringify(payload));
@@ -334,9 +347,9 @@ export class HomeAssistantFormat implements IMqttFormat {
     let payload: string;
     if (this.platform.service.getFanState()) {
       payload = 'fan_only';
-    } else if (!this.platform.service.getState()) {
+    } else if (!this.platform.service.getPowerState()) {
       payload = 'off';
-    } else if (this.platform.service.mode === Modes.HEAT) {
+    } else if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
       payload = 'heat';
     } else {
       payload = 'cool';
@@ -349,15 +362,15 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publishHvacTemperature');
 
     let payload: Record<string, number> | number;
-    if (this.platform.service.hasMultiSetPoint) {
+    if (this.platform.service.getHasMultiSetPoint()) {
       payload = {};
-      for (const zone of this.platform.service.controllers) {
-        if (this.platform.service.getTargetTemperature(zone) !== undefined) {
-          payload[zone] = this.platform.service.getTargetTemperature(zone);
+      for (const zone of this.platform.service.getZonesInstalled()) {
+        if (this.platform.service.getSetPointTemperature(zone) !== undefined) {
+          payload[zone] = this.platform.service.getSetPointTemperature(zone);
         }
       }
     } else {
-      payload = this.platform.service.getTargetTemperature();
+      payload = this.platform.service.getSetPointTemperature();
     }
 
     this.publish('hvac/temperature/get', JSON.stringify(payload));
@@ -366,10 +379,13 @@ export class HomeAssistantFormat implements IMqttFormat {
   private publishSwitchZone() {
     this.platform.log.debug(this.constructor.name, 'publishSwitchZone');
 
+    const zonesInstalled = this.platform.service.getZonesInstalled();
     for (const zone of ['A', 'B', 'C', 'D']) {
-      if (this.platform.service.zones.includes(zone)) {
+      if (zonesInstalled.includes(zone)) {
         const payload: string = this.platform.service.getUserEnabled(zone) ? 'on' : 'off';
         this.publish(`switch/zone/${zone.toLowerCase()}/get`, payload);
+      } else {
+        this.publish(`switch/zone/${zone.toLowerCase()}/get`, 'off');
       }
     }
   }
@@ -379,8 +395,8 @@ export class HomeAssistantFormat implements IMqttFormat {
 
     let payload: string;
     for (const mode of ['heat', 'cool', 'evap']) {
-      if (this.platform.service.getState()) {
-        payload = this.platform.service.mode === Modes[mode.toUpperCase()] ? 'on' : 'off';
+      if (this.platform.service.getPowerState()) {
+        payload = this.platform.service.getOperatingMode() === this.modeMap[mode] ? 'on' : 'off';
       } else {
         payload = 'off';
       }
@@ -398,8 +414,8 @@ export class HomeAssistantFormat implements IMqttFormat {
   private publishSwitchManual() {
     this.platform.log.debug(this.constructor.name, 'publishSwitchManual');
 
-    if (this.platform.service.hasMultiSetPoint) {
-      for (const zone of this.platform.service.controllers) {
+    if (this.platform.service.getHasMultiSetPoint()) {
+      for (const zone of this.platform.service.getZonesInstalled()) {
         if (this.platform.service.getControlMode(zone)) {
           const payload: string = this.platform.service.getControlMode(zone) === ControlModes.MANUAL ? 'on' : 'off';
           this.publish(`switch/manual/${zone.toLowerCase()}/get`, payload);

@@ -1,6 +1,6 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
-import { Modes, ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
+import { OperatingModes, ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
 
 export class AdvanceSwitch extends AccessoryBase {
@@ -17,7 +17,7 @@ export class AdvanceSwitch extends AccessoryBase {
   }
 
   get serviceName(): string {
-    return this.platform.service.hasMultiSetPoint
+    return this.platform.service.getHasMultiSetPoint()
       ? `Advance Period ${this.platformAccessory.context.zone}`
       : 'Advance Period';
   }
@@ -44,7 +44,7 @@ export class AdvanceSwitch extends AccessoryBase {
   async setAdvanceSwitchOn(value: boolean): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setAdvanceSwitchOn', value);
 
-    if (this.platform.service.mode === Modes.EVAP) {
+    if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
       return;
     }
 

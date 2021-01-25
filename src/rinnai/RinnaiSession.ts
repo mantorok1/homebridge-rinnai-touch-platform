@@ -1,40 +1,54 @@
 import events = require('events');
 import cq = require('concurrent-queue');
 
-import { RinnaiTouchPlatform } from '../platform';
 import { TcpService, ModuleAddress } from './TcpService';
 import { Message } from '../models/Message';
 import { Status } from '../models/Status';
-import { Commands } from '../models/Commands';
+import { Command, Commands } from '../models/Command';
+import { ILogging } from './ILogging';
 
 export class RinnaiSession extends events.EventEmitter {
-  private tcp: TcpService;
+  private readonly log: ILogging;
   private address?: ModuleAddress;
+  private readonly showModuleEvents: boolean;
+  private readonly showModuleStatus: boolean;
+
+  private tcp: TcpService;
   private pingIntervalId?: NodeJS.Timeout;
   private readonly queue: cq;
-  private sequence = 0;
-  private status?: Status;
+  private _message?: Message;
+  private _status: Status = new Status;
   private connectionError = false;
 
-  constructor(private readonly platform: RinnaiTouchPlatform) {
+  constructor(options: {
+    log?: ILogging,
+    address?: string,
+    port?: number,
+    showModuleEvents?: boolean,
+    showModuleStatus?: boolean,
+  } = {}) {
     super();
+    this.setMaxListeners(20);
 
-    if (platform.settings.address) {
+    this.log = options.log ?? console;
+    if (options.address) {
       this.address = {
-        address: platform.settings.address,
-        port: platform.settings.port ?? 27847,
+        address: options.address,
+        port: options.port ?? 27847,
       };
     }
+    this.showModuleEvents = options.showModuleEvents ?? true;
+    this.showModuleStatus = options.showModuleStatus ?? false;
 
-    this.tcp = new TcpService(this.platform, this.address);
+    this.tcp = new TcpService({log: this.log, address: this.address});
 
     this.queue = cq()
       .limit({ concurrency: 1 })
       .process(this.process.bind(this));
   }
 
-  async start() {
-    this.platform.log.debug(this.constructor.name, 'start');
+  async start(): Promise<void> {
+    this.log.debug(this.constructor.name, 'start');
 
     let connected = false;
     while (!connected) {
@@ -48,13 +62,13 @@ export class RinnaiSession extends events.EventEmitter {
         } catch (error) {
           this.connectionError = true;
           this.emit('connection');
-          this.platform.log.warn(`TCP Connection failed. Attempt ${i} of 3 [Error: ${error.message}]`);
+          this.log.warn(`TCP Connection failed. Attempt ${i} of 3 [Error: ${error.message}]`);
           await this.delay(500);
         }
       }
 
       if (!connected) {
-        this.platform.log.warn('Will try again in 1 minute');
+        this.log.warn('Will try again in 1 minute');
         await this.delay(60000);
       }
     }
@@ -67,12 +81,17 @@ export class RinnaiSession extends events.EventEmitter {
 
     // Ping module
     this.pingIntervalId = setInterval(async () => {
-      await this.sendCommands(new Commands());
+      await this.sendCommand(new Command({command: Commands.Ping}));
     }, 60000);
+
+    // Wait for first status
+    await new Promise((resolve) => {
+      this.once('status', resolve);
+    });
   }
 
   stop() {
-    this.platform.log.debug(this.constructor.name, 'stop');
+    this.log.debug(this.constructor.name, 'stop');
 
     try {
       if (this.pingIntervalId !== undefined) {
@@ -83,56 +102,72 @@ export class RinnaiSession extends events.EventEmitter {
 
       this.tcp.destroy();
     } catch (error) {
-      this.platform.log.error(error);
+      this.log.error(error);
     }
   }
 
-  getStatus(): Status | undefined {
-    return this.status;
+  get message(): Message | undefined {
+    return this._message;
   }
 
-  async sendCommands(commands: Commands): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'sendCommands', commands.toString());
+  get status(): Status {
+    return this._status;
+  }
+
+  async sendCommand(command: Command): Promise<void> {
+    this.log.debug(this.constructor.name, 'sendCommand', command.toString());
 
     try {
-      await this.queue(commands);
+      await this.queue(command);
     } catch (error) {
-      this.platform.log.error(error);
+      this.log.error(error);
       throw error;
     }
   }
 
-  private async process(commands: Commands): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'process', commands.toString());
+  private async process(command: Command): Promise<void> {
+    this.log.debug(this.constructor.name, 'process', command.toString());
 
     try {
-      const payload = commands.toCommand(this.nextSequence);
+      let payload = 'N' + this.getNextSequence();
+      const states = command.toJson(this.status);
+      if (!command.isPing) {
+        if (states === undefined) {
+          this.log.info(`${command.toString()} is invalid due to module's current Status`);
+          return;
+        }
+        if (this.status.hasStates(states)) {
+          this.log.info(`${command.toString()} not required as Status already in the requested state`);
+          return;
+        }
+        payload += JSON.stringify(states);
+      }
 
-      if (this.platform.settings.showModuleEvents && !commands.isPing) {
-        this.platform.log.info(`Sending: ${payload}`);
+      if (this.showModuleEvents && !command.isPing) {
+        this.log.info(`Sending: ${payload}`);
       }
 
       for (let i = 1; i <= 3; i++) {
         await this.tcp.write(payload);
 
-        if (commands.isPing) {
+        if (command.isPing) {
           return;
         }
 
-        const success: boolean = await this.commandSucceeded(commands);
+        const success: boolean = await this.commandSucceeded(states!);
         if (success) {
           return;
         }
-        this.platform.log.warn(`Command failed. Attempt ${i} of 3`);
+        this.log.warn(`Command failed. Attempt ${i} of 3`);
       }
     } catch (error) {
-      this.platform.log.error(error);
+      this.log.error(error);
       throw error;
     }
   }
 
-  private async commandSucceeded(commands: Commands): Promise<boolean> {
-    this.platform.log.debug(this.constructor.name, 'commandSucceeded', commands.toString());
+  private async commandSucceeded(states: Record<string, Record<string, Record<string, string>>>): Promise<boolean> {
+    this.log.debug(this.constructor.name, 'commandSucceeded', states);
 
     let checkStatus: (status: Status) => void;
 
@@ -146,10 +181,10 @@ export class RinnaiSession extends events.EventEmitter {
         }, 10000);
 
         checkStatus = (status: Status) => {
-          if (status.hasStates(commands.group1, commands.group2, commands.commands, commands.states)) {
+          if (status.hasStates(states)) {
             clearTimeout(timerId);
-            if (this.platform.settings.showModuleEvents) {
-              this.platform.log.info(`Command succeeded. Took ${Date.now() - startTime} ms`);
+            if (this.showModuleEvents) {
+              this.log.info(`Command succeeded. Took ${Date.now() - startTime} ms`);
             }
             this.off('status', checkStatus);
             resolve(true);
@@ -165,38 +200,37 @@ export class RinnaiSession extends events.EventEmitter {
   }
 
   private receiveMessage(message: Message) {
-    this.platform.log.debug(this.constructor.name, 'receiveMessage', message.toString());
+    this.log.debug(this.constructor.name, 'receiveMessage', message.toString());
 
     try {
-      this.sequence = message.sequence!;
-
-      if (message.status!.equals(this.status)) {
+      if (message.status! === this.message?.status) {
         return;
       }
 
-      if (this.platform.settings.showModuleStatus) {
-        this.platform.log.info(message.status!.toString());
+      if (this.showModuleStatus) {
+        this.log.info(message.status!);
       }
 
-      this.status = message.status;
-      this.emit('status', message.status);
+      this._message = message;
+      this.status.update(message.status!);
+      this.emit('status', this.status);
     } catch(error) {
-      this.platform.log.error(error);
+      this.log.error(error);
     }
   }
 
   private async handleConnectionError(error: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'handleError', error);
+    this.log.debug(this.constructor.name, 'handleError', error);
 
     try {
-      this.platform.log.warn(`TCP Connection failed. Attempting to reconnect [Error: ${error}]`);
+      this.log.warn(`TCP Connection failed. Attempting to reconnect [Error: ${error}]`);
       this.connectionError = true;
       this.emit('connection');
       this.stop();
       await this.delay(2000);
       await this.start();
     } catch(error) {
-      this.platform.log.error(error);
+      this.log.error(error);
     }
   }
 
@@ -204,12 +238,12 @@ export class RinnaiSession extends events.EventEmitter {
     return this.connectionError;
   }
 
-  private get nextSequence(): number {
-    let nextSequence = (this.sequence + 1) % 255;
+  private getNextSequence(): string {
+    let nextSequence = ((this.message?.sequence ?? 0) + 1) % 255;
     if (nextSequence === 0) {
       nextSequence = 1;
     }
-    return nextSequence;
+    return nextSequence.toString().padStart(6, '0');
   }
 
   async delay(ms: number): Promise<void> {
@@ -217,5 +251,4 @@ export class RinnaiSession extends events.EventEmitter {
       setTimeout(resolve, ms);
     });
   }
-
 }

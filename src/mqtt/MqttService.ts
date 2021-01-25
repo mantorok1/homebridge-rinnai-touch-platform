@@ -1,7 +1,6 @@
 import mqtt = require('async-mqtt');
 
 import { RinnaiTouchPlatform } from '../platform';
-import { NativeFormat } from './NativeFormat';
 import { HomeAssistantFormat } from './HomeAssistantFormat';
 import { ConnectionFormat } from './ConnectionFormat';
 import { FaultFormat } from './FaultFormat';
@@ -41,9 +40,6 @@ export class MqttService {
   
       await this.connect();
 
-      if (this.settings.formatNative) {
-        this.formats.push(new NativeFormat(this.platform, this.client));
-      }
       if (this.settings.formatHomeAssistant) {
         this.formats.push(new HomeAssistantFormat(this.platform, this.client));
       }

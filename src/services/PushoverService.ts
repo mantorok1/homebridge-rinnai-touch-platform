@@ -2,7 +2,7 @@ import Pushover = require('pushover-notifications');
 
 import { RinnaiTouchPlatform } from '../platform';
 import { Fault } from '../models/Fault';
-import { Status } from '../models/Status';
+import { Status, States } from '../models/Status';
 
 export class PushoverService {
   private pushover;
@@ -43,9 +43,6 @@ export class PushoverService {
 
     this.token = this.platform.settings.pushover.token;
     this.users = this.platform.settings.pushover.users;
-    if (this.platform.service.hasMultiSetPoint) {
-      this.zones = this.platform.service.zones;
-    }
   }
   
   init() {
@@ -66,22 +63,25 @@ export class PushoverService {
     this.dayIncorrect = this.platform.settings.pushover?.dayIncorrect ?? false;
     this.timeIncorrect = this.platform.settings.pushover?.timeIncorrect ?? false;
 
-    this.platform.service.on('updated', this.handleUpdated.bind(this));
-    this.platform.service.on('connection', this.handleConnection.bind(this));
+    this.platform.temperatureService.on('temperature_change', this.handleTemperatureChange.bind(this));
+    this.platform.service.session.on('connection', this.handleConnection.bind(this));
     this.platform.service.on('fault', this.handleFault.bind(this));
-    this.platform.session.on('status', this.handleStatus.bind(this));
+    this.platform.service.session.on('status', this.handleStatus.bind(this));
   }
 
-  private handleUpdated(): void {
-    this.platform.log.debug(this.constructor.name, 'handleUpdated');
+  private handleTemperatureChange(temperatures: Record<string, number | undefined>): void {
+    this.platform.log.debug(this.constructor.name, 'handleTemperatureChange', temperatures);
 
     if (this.minTemperatureThreshold === undefined && this.maxTemperatureThreshold === undefined) {
       return;
     }
 
-    for(const zone of this.zones) {
-      const temperature = this.platform.service.getCurrentTemperature(zone);
-      if (temperature === 0) {
+    const zones = this.platform.service.getHasMultiSetPoint()
+      ? this.platform.service.getZonesInstalled()
+      : ['U'];
+
+    for(const zone of zones) {
+      if (temperatures[zone] === undefined) {
         continue;
       }
       const zoneName = zone === 'U'
@@ -90,13 +90,13 @@ export class PushoverService {
       
       // Min Temp Threshold
       if (this.minTemperatureThreshold !== undefined) {
-        if (temperature < this.minTemperatureThreshold) {
+        if (temperatures[zone]! < this.minTemperatureThreshold) {
           if (!(this.minTemperatureThresholdSent.get(zone) ?? false)) {
             this.sendMessage(`Temperature is below ${this.minTemperatureThreshold} degrees ${zoneName}`);
             this.minTemperatureThresholdSent.set(zone, true);
           }
         } else {
-          if (temperature > this.minTemperatureThreshold + 1) {
+          if (temperatures[zone]! > this.minTemperatureThreshold + 1) {
             this.minTemperatureThresholdSent.set(zone, false);
           }
         }
@@ -104,13 +104,13 @@ export class PushoverService {
 
       // Max Temp Threshold
       if (this.maxTemperatureThreshold !== undefined) {
-        if (temperature > this.maxTemperatureThreshold) {
+        if (temperatures[zone]! > this.maxTemperatureThreshold) {
           if (!(this.maxTemperatureThresholdSent.get(zone) ?? false)) {
             this.sendMessage(`Temperature is above ${this.maxTemperatureThreshold} degrees ${zoneName}`);
             this.maxTemperatureThresholdSent.set(zone, true);
           }
         } else {
-          if (temperature < this.maxTemperatureThreshold - 1) {
+          if (temperatures[zone]! < this.maxTemperatureThreshold - 1) {
             this.maxTemperatureThresholdSent.set(zone, false);
           }
         }
@@ -119,13 +119,13 @@ export class PushoverService {
   }
 
   private handleConnection(): void {
-    this.platform.log.debug(this.constructor.name, 'handleUpdated');
+    this.platform.log.debug(this.constructor.name, 'handleConnection');
 
     if (!this.connectionError) {
       return;
     }
 
-    if (this.platform.session.hasConnectionError) {
+    if (this.platform.service.session.hasConnectionError) {
       if (!this.connectionErrorSent) {
         this.sendMessage('TCP/IP Connection Error occured');
         this.connectionErrorSent = true;
@@ -163,8 +163,8 @@ export class PushoverService {
     }
 
     const now = new Date();
-    const module_day = status.getState('SYST', 'OSS', 'DY');
-    const module_time = status.getState('SYST', 'OSS', 'TM');
+    const module_day = status.getState(States.Day);
+    const module_time = status.getState(States.Time);
 
     if (module_day === undefined || module_time === undefined) {
       return;

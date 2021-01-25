@@ -1,7 +1,7 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { AccessoryBase } from './AccessoryBase';
-import { Modes, ControlModes } from '../rinnai/RinnaiService';
+import { OperatingModes, ControlModes } from '../rinnai/RinnaiService';
 
 export class Fan extends AccessoryBase {
 
@@ -53,10 +53,10 @@ export class Fan extends AccessoryBase {
 
     // If turning fan on then ensure HEAT/COOL is off or EVAP is on
     if (value) {
-      if (this.platform.service.mode !== Modes.EVAP) {
-        await this.platform.service.setState(false);
+      if (this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING) {
+        await this.platform.service.setPowerState(false);
       } else {
-        await this.platform.service.setState(true);
+        await this.platform.service.setPowerState(true);
         await this.platform.service.setControlMode(ControlModes.MANUAL);
       }
     }

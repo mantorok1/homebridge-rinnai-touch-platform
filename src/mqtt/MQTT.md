@@ -75,7 +75,6 @@ This section describes the configuration options for the plugin to operate as an
         "username": "mantorok",
         "password": "password",
         "topicPrefix": "rinnai",
-        "formatNative": false,
         "formatHomeAssistant": true,
         "formatConnection": false,
         "formatFault": true,
@@ -105,7 +104,6 @@ This section describes the configuration options for the plugin to operate as an
 |`username`|No|string|Credentials for MQTT Broker||
 |`password`|No|string|||
 |`topicPrefix`|No|string|Optional text to prefix to each topic name||
-|`formatNative`|No|boolean|Enable Native Rinnai Touch message format|`false`|
 |`formatHomeAssistant`|No|boolean|Enable Home Assistant message format|`false`|
 |`formatConnection`|No|boolean|Enable Connection Status message format|`false`|
 |`formatFault`|No|boolean|Enable Fault Status message format|`false`|

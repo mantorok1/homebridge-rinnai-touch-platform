@@ -19,7 +19,7 @@ export class ConnectionFormat implements IMqttFormat {
 
     // Publish on status change
     if (this.platform.settings.mqtt!.publishStatusChanged) {
-      this.platform.session.on('connection', () => {
+      this.platform.service.session.on('connection', () => {
         this.publishStatus();
       });
     }
@@ -46,11 +46,11 @@ export class ConnectionFormat implements IMqttFormat {
   private publishStatus() {
     this.platform.log.debug(this.constructor.name, 'publishStatus');
 
-    if (this.connectionError === this.platform.session.hasConnectionError) {
+    if (this.connectionError === this.platform.service.session.hasConnectionError) {
       return;
     }
 
-    this.connectionError = this.platform.session.hasConnectionError;
+    this.connectionError = this.platform.service.session.hasConnectionError;
     const payload: string = this.connectionError
       ? 'error'
       : 'ok';

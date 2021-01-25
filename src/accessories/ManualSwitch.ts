@@ -2,7 +2,7 @@ import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { ControlModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
-import { Modes } from '../rinnai/RinnaiService';
+import { OperatingModes } from '../rinnai/RinnaiService';
 
 export class ManualSwitch extends AccessoryBase {
   constructor(
@@ -18,7 +18,7 @@ export class ManualSwitch extends AccessoryBase {
   }
 
   get serviceName(): string {
-    return this.platform.service.hasMultiSetPoint
+    return this.platform.service.getHasMultiSetPoint()
       ? `Manual ${this.platformAccessory.context.zone}`
       : 'Manual';
   }
@@ -46,8 +46,8 @@ export class ManualSwitch extends AccessoryBase {
     this.platform.log.debug(this.constructor.name, 'setManualSwitchOn', value);
 
     // For Evap the unit must be ON before setting control mode
-    if (this.platform.service.mode === Modes.EVAP) {
-      await this.platform.service.setState(true);
+    if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
+      await this.platform.service.setPowerState(true);
     }
 
     const state: ControlModes = value

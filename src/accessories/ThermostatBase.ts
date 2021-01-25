@@ -25,13 +25,13 @@ export abstract class ThermostatBase extends AccessoryBase {
   }
 
   getCurrentTemperature(): number {
-    this.platform.log.debug('RinnaiTouchTemperature', 'getCurrentTemperature');
+    this.platform.log.debug('ThermostatBase', 'getCurrentTemperature');
 
-    return this.platform.service.getCurrentTemperature(this.platformAccessory.context.zone);
+    return this.platform.temperatureService.getTemperature(this.platformAccessory.context.zone) ?? 0;
   }
 
   getTemperatureUnits(): number {
-    this.platform.log.debug('RinnaiTouchTemperature', 'getTemperatureUnits');
+    this.platform.log.debug('ThermostatBase', 'getTemperatureUnits');
 
     const state = this.platform.service.getTemperatureUnits();
     return state === 'F'
@@ -40,7 +40,7 @@ export abstract class ThermostatBase extends AccessoryBase {
   }
 
   updateValues(): void {
-    this.platform.log.debug('RinnaiTouchTemperature', 'updateValues', 'service');
+    this.platform.log.debug('ThermostatBase', 'updateValues', 'service');
 
     this.service
       .getCharacteristic(this.platform.Characteristic.CurrentTemperature)

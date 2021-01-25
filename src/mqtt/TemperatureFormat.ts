@@ -33,7 +33,7 @@ export class TemperatureFormat implements IMqttFormat {
           const temperture = this.extractTemperature(zone, payload);
           this.platform.log.info(`MQTT: Extracted Temperature: ${temperture}`);
           if (temperture !== undefined) {
-            this.platform.service.setCurrentTemperatureOverride(temperture, zone);
+            this.platform.temperatureService.setTemperature(zone, temperture);
           }
         }
       }

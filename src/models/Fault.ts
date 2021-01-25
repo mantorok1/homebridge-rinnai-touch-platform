@@ -1,4 +1,4 @@
-import { Status } from './Status';
+import { Status, States } from './Status';
 
 export class Fault {
   private readonly _detected: boolean;
@@ -8,8 +8,8 @@ export class Fault {
   private readonly _code?: string;
 
   constructor(status: Status) {
-    this._detected = status.getState('SYST', 'FLT', 'AV') === 'Y';
-    switch(status.getState('SYST', 'FLT', 'GP')) {
+    this._detected = status.getState(States.FaultDetected) === 'Y';
+    switch(status.getState(States.FaultApplianceType)) {
       case 'H':
         this._applicanceType = 'Heater';
         break;
@@ -26,8 +26,8 @@ export class Fault {
         this._applicanceType = 'Controlling Device';
         break;
     }
-    this._unit = status.getState('SYST', 'FLT', 'UT');
-    switch(status.getState('SYST', 'FLT', 'TP')) {
+    this._unit = status.getState(States.FaultUnit);
+    switch(status.getState(States.FaultSeverity)) {
       case 'M':
         this._severity = 'Minor';
         break;
@@ -38,7 +38,7 @@ export class Fault {
         this._severity = 'Lockout';
         break;
     }
-    this._code = status.getState('SYST', 'FLT', 'CD');
+    this._code = status.getState(States.FaultCode);
   }
 
   get detected(): boolean {

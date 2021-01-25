@@ -1,7 +1,7 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { AccessoryBase } from './AccessoryBase';
-import { Modes, ControlModes } from '../rinnai/RinnaiService';
+import { OperatingModes, ControlModes } from '../rinnai/RinnaiService';
 
 export class Pump extends AccessoryBase {
   constructor(
@@ -61,8 +61,8 @@ export class Pump extends AccessoryBase {
     const state: boolean = value === this.platform.Characteristic.Active.ACTIVE;
 
     if (value) {
-      await this.platform.service.setMode(Modes.EVAP);
-      await this.platform.service.setState(true);
+      await this.platform.service.setOperatingMode(OperatingModes.EVAPORATIVE_COOLING);
+      await this.platform.service.setPowerState(true);
       await this.platform.service.setControlMode(ControlModes.MANUAL);
     }
 

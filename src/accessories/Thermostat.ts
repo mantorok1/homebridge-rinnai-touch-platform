@@ -1,6 +1,6 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
-import { Modes, ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
+import { OperatingModes, ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
 import { ThermostatBase } from './ThermostatBase';
 
 export class Thermostat extends ThermostatBase {
@@ -23,7 +23,7 @@ export class Thermostat extends ThermostatBase {
   }
 
   get serviceName(): string {
-    const name: string = this.platform.service.hasMultiSetPoint
+    const name: string = this.platform.service.getHasMultiSetPoint()
       ? this.platform.service.getZoneName(this.platformAccessory.context.zone)
       : this.platform.settings.name;
     return name;
@@ -63,10 +63,10 @@ export class Thermostat extends ThermostatBase {
     this.platform.log.debug(this.constructor.name, 'getValidCurrentHeatingCoolingStates');
 
     const validStates: number[] = [this.platform.Characteristic.CurrentHeatingCoolingState.OFF];
-    if (this.platform.service.hasHeater) {
+    if (this.platform.service.getHasHeater()) {
       validStates.push(this.platform.Characteristic.CurrentHeatingCoolingState.HEAT);
     }
-    if (this.platform.service.hasCooler || this.platform.service.hasEvaporative) {
+    if (this.platform.service.getHasCooler() || this.platform.service.getHasEvaporative()) {
       validStates.push(this.platform.Characteristic.CurrentHeatingCoolingState.COOL);
     }
     return validStates;
@@ -76,10 +76,10 @@ export class Thermostat extends ThermostatBase {
     this.platform.log.debug(this.constructor.name, 'getValidTargetHeatingCoolingStates');
 
     const validStates: number[] = [this.platform.Characteristic.TargetHeatingCoolingState.OFF];
-    if (this.platform.service.hasHeater) {
+    if (this.platform.service.getHasHeater()) {
       validStates.push(this.platform.Characteristic.TargetHeatingCoolingState.HEAT);
     }
-    if (this.platform.service.hasCooler || this.platform.service.hasEvaporative) {
+    if (this.platform.service.getHasCooler() || this.platform.service.getHasEvaporative()) {
       validStates.push(this.platform.Characteristic.TargetHeatingCoolingState.COOL);
     }
     if (this.platform.settings.showAuto) {
@@ -112,13 +112,13 @@ export class Thermostat extends ThermostatBase {
   getCurrentHeatingCoolingState(): number {
     this.platform.log.debug(this.constructor.name, 'getCurrentHeatingCoolingState');
 
-    const state: boolean = this.platform.service.getSystemActive(this.platformAccessory.context.zone);
+    const state: boolean = this.platform.service.getAutoEnabled(this.platformAccessory.context.zone);
 
     if (!state) {
       return this.platform.Characteristic.CurrentHeatingCoolingState.OFF;
     }
 
-    if (this.platform.service.mode === Modes.HEAT) {
+    if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
       return this.platform.Characteristic.CurrentHeatingCoolingState.HEAT;
     }
 
@@ -128,13 +128,13 @@ export class Thermostat extends ThermostatBase {
   getTargetHeatingCoolingState(): number {
     this.platform.log.debug(this.constructor.name, 'getTargetHeatingCoolingState');
 
-    const state: boolean = this.platform.service.getState();
+    const state: boolean = this.platform.service.getPowerState();
 
     if (!state) {
       return this.platform.Characteristic.TargetHeatingCoolingState.OFF;
     }
 
-    if (this.platform.service.mode === Modes.HEAT) {
+    if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
       return this.platform.Characteristic.TargetHeatingCoolingState.HEAT;
     }
 
@@ -144,45 +144,45 @@ export class Thermostat extends ThermostatBase {
   getTargetTemperature(): number {
     this.platform.log.debug(this.constructor.name, 'getTargetTemperature');
 
-    return this.platform.service.getTargetTemperature(this.platformAccessory.context.zone);
+    return this.platform.service.getSetPointTemperature(this.platformAccessory.context.zone);
   }
 
   async setTargetHeatingCoolingState(value: number): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setTargetHeatingCoolingState', value);
 
-    if (this.platform.service.mode !== Modes.EVAP &&
+    if (this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING &&
         this.platform.service.getFanState() &&
         value === this.platform.Characteristic.TargetHeatingCoolingState.OFF) {
       return;
     }
 
     if (value === this.platform.Characteristic.TargetHeatingCoolingState.OFF) {
-      await this.platform.service.setState(false);
+      await this.platform.service.setPowerState(false);
       return;
     }
 
     if (value === this.platform.Characteristic.TargetHeatingCoolingState.HEAT) {
       await this.platform.service.setFanState(false);
-      await this.platform.service.setMode(Modes.HEAT);
-      await this.platform.service.setState(true);
+      await this.platform.service.setOperatingMode(OperatingModes.HEATING);
+      await this.platform.service.setPowerState(true);
       return;
     }
 
     if (value === this.platform.Characteristic.TargetHeatingCoolingState.COOL) {
-      if (this.platform.service.hasCooler) {
+      if (this.platform.service.getHasCooler()) {
         await this.platform.service.setFanState(false);
-        await this.platform.service.setMode(Modes.COOL);
-        await this.platform.service.setState(true);
+        await this.platform.service.setOperatingMode(OperatingModes.COOLING);
+        await this.platform.service.setPowerState(true);
       } else {
-        await this.platform.service.setMode(Modes.EVAP);
-        await this.platform.service.setState(true);
+        await this.platform.service.setOperatingMode(OperatingModes.EVAPORATIVE_COOLING);
+        await this.platform.service.setPowerState(true);
       }
       return;
     }
 
     if (value === this.platform.Characteristic.TargetHeatingCoolingState.AUTO) {
-      await this.platform.service.setState(true);
-      if (this.platform.service.mode !== Modes.EVAP) {
+      await this.platform.service.setPowerState(true);
+      if (this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING) {
         await this.platform.service.setControlMode(ControlModes.AUTO, this.platformAccessory.context.zone);
         await this.platform.service.setScheduleOverride(ScheduleOverrideModes.NONE, this.platformAccessory.context.zone);  
       } else {
@@ -200,11 +200,11 @@ export class Thermostat extends ThermostatBase {
       return;
     }
 
-    if (this.platform.service.mode === Modes.EVAP && this.platform.settings.setAutoOperatingState) {
+    if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING && this.platform.settings.setAutoOperatingState) {
       await this.platform.service.setControlMode(ControlModes.AUTO);
     }
 
-    await this.platform.service.setTargetTemperature(value, this.platformAccessory.context.zone);
+    await this.platform.service.setSetPointTemperature(value, this.platformAccessory.context.zone);
   }
 
   updateValues(): void {

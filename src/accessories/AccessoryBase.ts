@@ -32,7 +32,11 @@ export abstract class AccessoryBase {
   setEventHandlers(): void {
     this.platform.log.debug('AccessoryBase', 'setEventHandlers');
 
-    this.platform.service.on('updated', () => {
+    this.platform.service.session.on('status', () => {
+      this.updateValues();
+    });
+
+    this.platform.temperatureService.on('temperature_change', () => {
       this.updateValues();
     });
   }
@@ -49,7 +53,6 @@ export abstract class AccessoryBase {
     }
 
     try {
-      this.platform.service.updateStates();
       const value = getValue();
 
       callback(null, value);
@@ -75,8 +78,6 @@ export abstract class AccessoryBase {
       await setValue(value);
 
       callback(null);
-
-      this.platform.service.updateStates();
     } catch (error) {
       this.platform.log.error(error);
       callback(error);

@@ -1,32 +1,32 @@
 import net = require('net');
 import events = require('events');
 
-import { RinnaiTouchPlatform } from '../platform';
+import { ILogging } from './ILogging';
 import { UdpService, ModuleAddress } from './UdpService';
 import { Message } from '../models/Message';
 
 export { ModuleAddress };
 
 export class TcpService extends events.EventEmitter {
-  private readonly defaultAddress?: ModuleAddress;
+  private readonly log: ILogging;
+  private address?: ModuleAddress;
+  private readonly timeout: number;
   private readonly udp: UdpService;
   private socket?: net.Socket;
 
-  constructor(
-    private readonly platform: RinnaiTouchPlatform,
-    private address?: ModuleAddress,
-    private readonly timeout: number = 5000,
-  ) {
+  constructor(options: {log?: ILogging, address?: ModuleAddress, timeout?: number} = {}) {
     super();
-    this.defaultAddress = address;
-    this.udp = new UdpService(platform, timeout);
+    this.log = options.log ?? console;
+    this.address = options.address;
+    this.timeout = options.timeout ?? 5000;
+    this.udp = new UdpService({log: this.log, timeout: this.timeout});
   }
 
   async connect(): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'connect');
+    this.log.debug(this.constructor.name, 'connect');
 
     if (!this.address) {
-      this.address = this.defaultAddress ?? await this.udp.getAddress();
+      this.address = await this.udp.getAddress();
     }
 
     return new Promise((resolve, reject) => {
@@ -52,7 +52,7 @@ export class TcpService extends events.EventEmitter {
         });
 
         this.socket.once('ready', () => {
-          this.platform.log.info('TCP Connection: Open');
+          this.log.info('TCP Connection: Open');
         });
 
         this.socket.once('timeout', () => {
@@ -76,7 +76,7 @@ export class TcpService extends events.EventEmitter {
   }
 
   closeSocket(clearAddress: boolean) {
-    this.platform.log.debug(this.constructor.name, 'closeSocket');
+    this.log.debug(this.constructor.name, 'closeSocket');
 
     if (clearAddress) {
       this.address = undefined;
@@ -90,16 +90,16 @@ export class TcpService extends events.EventEmitter {
   }
 
   destroy(): void {
-    this.platform.log.debug(this.constructor.name, 'destroy');
+    this.log.debug(this.constructor.name, 'destroy');
 
     if (this.socket) {
       this.closeSocket(true);
-      this.platform.log.info('TCP Connection: Closed');
+      this.log.info('TCP Connection: Closed');
     }
   }
 
   write(data: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'write', data);
+    this.log.debug(this.constructor.name, 'write', data);
 
     return new Promise((resolve, reject) => {
       try {

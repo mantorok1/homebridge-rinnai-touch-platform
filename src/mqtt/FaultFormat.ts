@@ -37,7 +37,7 @@ export class FaultFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publishTopics');
 
     try {
-      const status = this.platform.session.getStatus();
+      const status = this.platform.service.session.status;
       if (status !== undefined) {
         const fault = new Fault(status);
         this.publishFault(fault);

@@ -35,7 +35,7 @@ export class AccessoryService {
     this.platform.log.debug(this.constructor.name, 'discoverThermostats');
 
     for(const zone of this.platform.service.AllZones) {
-      if (this.platform.settings.controllerType === 'T' && this.platform.service.controllers.includes(zone)) {
+      if (this.platform.settings.controllerType === 'T' && this.platform.service.getHasController(zone)) {
         this.addAccessory(Thermostat, Thermostat.name, zone);
       } else {
         this.removeAccessory(Thermostat.name, zone);
@@ -48,12 +48,12 @@ export class AccessoryService {
 
     for (const zone of this.platform.service.AllZones) {
       const addHeaterCooler: boolean =
-        (this.platform.settings.controllerType === 'H' && this.platform.service.controllers.includes(zone)) ||
+        (this.platform.settings.controllerType === 'H' && this.platform.service.getHasController(zone)) ||
         (
-          !this.platform.service.hasMultiSetPoint &&
+          !this.platform.service.getHasMultiSetPoint() &&
           zone !== 'U' &&
           this.platform.settings.zoneType === 'H' &&
-          this.platform.service.zones.includes(zone)
+          this.platform.service.getZoneInstalled(zone)
         );
 
       if (addHeaterCooler) {
@@ -78,9 +78,9 @@ export class AccessoryService {
     this.platform.log.debug(this.constructor.name, 'discoverZoneSwitches');
 
     for(const zone of ['A', 'B', 'C', 'D']) {
-      if (!this.platform.service.hasMultiSetPoint &&
+      if (!this.platform.service.getHasMultiSetPoint() &&
          this.platform.settings.zoneType === 'S' &&
-         this.platform.service.zones.includes(zone)
+         this.platform.service.getZoneInstalled(zone)
       ) {
         this.addAccessory(ZoneSwitch, ZoneSwitch.name, zone);
       } else {
@@ -94,8 +94,8 @@ export class AccessoryService {
 
     for(const zone of this.platform.service.AllZones) {
       if (this.platform.settings.showAdvanceSwitches &&
-          this.platform.service.hasHeater &&
-          this.platform.service.controllers.includes(zone)) {
+          this.platform.service.getHasHeater() &&
+          this.platform.service.getHasController(zone)) {
         this.addAccessory(AdvanceSwitch, AdvanceSwitch.name, zone);
       } else {
         this.removeAccessory(AdvanceSwitch.name, zone);
@@ -107,7 +107,7 @@ export class AccessoryService {
     this.platform.log.debug(this.constructor.name, 'discoverManualSwitches');
 
     for(const zone of this.platform.service.AllZones) {
-      if (this.platform.settings.showManualSwitches && this.platform.service.controllers.includes(zone)) {
+      if (this.platform.settings.showManualSwitches && this.platform.service.getHasController(zone)) {
         this.addAccessory(ManualSwitch, ManualSwitch.name, zone);
       } else {
         this.removeAccessory(ManualSwitch.name, zone);
@@ -118,7 +118,7 @@ export class AccessoryService {
   discoverPump() {
     this.platform.log.debug(this.constructor.name, 'discoverPump');
 
-    if (this.platform.service.hasEvaporative) {
+    if (this.platform.service.getHasEvaporative()) {
       this.addAccessory(Pump, Pump.name);
     } else {
       this.removeAccessory(Pump.name);

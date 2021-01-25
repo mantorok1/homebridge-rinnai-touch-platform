@@ -136,10 +136,6 @@
             "title": "Topic Prefix",
             "type": "string"
           },
-          "formatNative": {
-            "title": "Native Rinnai Touch",
-            "type": "boolean"
-          },
           "formatHomeAssistant": {
             "title": "Home Assistant",
             "type": "boolean"
@@ -333,7 +329,6 @@
           "expandable": false,
           "expanded": true,
           "items": [
-            "mqtt.formatNative",
             "mqtt.formatHomeAssistant",
             "mqtt.formatConnection",
             "mqtt.formatFault"

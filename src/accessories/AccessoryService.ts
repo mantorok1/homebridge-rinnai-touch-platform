@@ -1,6 +1,6 @@
 import { PlatformAccessory } from 'homebridge';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
-import { RinnaiTouchPlatform } from '../platform';
+import { RinnaiTouchPlatform, devices } from '../platform';
 import { AccessoryBase } from './AccessoryBase';
 import { Thermostat } from './Thermostat';
 import { HeaterCooler } from './HeaterCooler';
@@ -15,27 +15,32 @@ export class AccessoryService {
 
   constructor(private readonly platform: RinnaiTouchPlatform) { }
 
-  discover(): void {
+  discover(devices: devices): void {
     this.platform.log.debug(this.constructor.name, 'discover');
 
     try {
-      this.discoverThermostats();
-      this.discoverHeaterCoolers();
+      this.discoverThermostats(devices);
+      this.discoverHeaterCoolers(devices);
       this.discoverFan();
-      this.discoverZoneSwitches();
-      this.discoverAdvanceSwitches();
-      this.discoverManualSwitches();
-      this.discoverPump();
+      this.discoverZoneSwitches(devices);
+      this.discoverAdvanceSwitches(devices);
+      this.discoverManualSwitches(devices);
+      this.discoverPump(devices);
     } catch (error) {
       this.platform.log.error(error);
     }
   }
 
-  discoverThermostats(): void {
-    this.platform.log.debug(this.constructor.name, 'discoverThermostats');
+  discoverThermostats(devices: devices): void {
+    this.platform.log.debug(this.constructor.name, 'discoverThermostats', devices);
+
+    const zones: string[] = [];
+    if (this.platform.settings.controllerType === 'T') {
+      zones.push(...devices.controllers);
+    }
 
     for(const zone of this.platform.service.AllZones) {
-      if (this.platform.settings.controllerType === 'T' && this.platform.service.getHasController(zone)) {
+      if (zones.includes(zone)) {
         this.addAccessory(Thermostat, Thermostat.name, zone);
       } else {
         this.removeAccessory(Thermostat.name, zone);
@@ -43,20 +48,24 @@ export class AccessoryService {
     }
   }
 
-  discoverHeaterCoolers(): void {
-    this.platform.log.debug(this.constructor.name, 'discoverHeaterCoolers');
+  discoverHeaterCoolers(devices: devices): void {
+    this.platform.log.debug(this.constructor.name, 'discoverHeaterCoolers', devices);
 
-    for (const zone of this.platform.service.AllZones) {
-      const addHeaterCooler: boolean =
-        (this.platform.settings.controllerType === 'H' && this.platform.service.getHasController(zone)) ||
-        (
-          !this.platform.service.getHasMultiSetPoint() &&
-          zone !== 'U' &&
-          this.platform.settings.zoneType === 'H' &&
-          this.platform.service.getZoneInstalled(zone)
-        );
+    const zones: string[] = [];
+    if (this.platform.settings.controllerType === 'H') {
+      zones.push(...devices.controllers);
+    }
 
-      if (addHeaterCooler) {
+    if (this.platform.settings.zoneType === 'H' && 'heat' in devices) {
+      for(const zone of devices.heat) {
+        if (!zones.includes(zone)) {
+          zones.push(zone);
+        }
+      }
+    }
+
+    for(const zone of this.platform.service.AllZones) {
+      if (zones.includes(zone)) {
         this.addAccessory(HeaterCooler, HeaterCooler.name, zone);
       } else {
         this.removeAccessory(HeaterCooler.name, zone);
@@ -74,14 +83,20 @@ export class AccessoryService {
     }
   }
 
-  discoverZoneSwitches(): void {
-    this.platform.log.debug(this.constructor.name, 'discoverZoneSwitches');
+  discoverZoneSwitches(devices: devices): void {
+    this.platform.log.debug(this.constructor.name, 'discoverZoneSwitches', devices);
+
+    const zones: string[] = [];
+    if (this.platform.settings.zoneType === 'S') {
+      if ('heat' in devices) {
+        zones.push(...devices.heat);
+      } else if ('evap' in devices) {
+        zones.push(...devices.evap);
+      }
+    }
 
     for(const zone of ['A', 'B', 'C', 'D']) {
-      if (!this.platform.service.getHasMultiSetPoint() &&
-         this.platform.settings.zoneType === 'S' &&
-         this.platform.service.getZoneInstalled(zone)
-      ) {
+      if (zones.includes(zone)) {
         this.addAccessory(ZoneSwitch, ZoneSwitch.name, zone);
       } else {
         this.removeAccessory(ZoneSwitch.name, zone);
@@ -89,13 +104,16 @@ export class AccessoryService {
     }
   }
 
-  discoverAdvanceSwitches() {
-    this.platform.log.debug(this.constructor.name, 'discoverAdvanceSwitches');
+  discoverAdvanceSwitches(devices: devices) {
+    this.platform.log.debug(this.constructor.name, 'discoverAdvanceSwitches', devices);
+
+    const zones: string[] = [];
+    if (this.platform.settings.showAdvanceSwitches && 'heat' in devices) {
+      zones.push(...devices.controllers);
+    }
 
     for(const zone of this.platform.service.AllZones) {
-      if (this.platform.settings.showAdvanceSwitches &&
-          this.platform.service.getHasHeater() &&
-          this.platform.service.getHasController(zone)) {
+      if (zones.includes(zone)) {
         this.addAccessory(AdvanceSwitch, AdvanceSwitch.name, zone);
       } else {
         this.removeAccessory(AdvanceSwitch.name, zone);
@@ -103,11 +121,16 @@ export class AccessoryService {
     }
   }
 
-  discoverManualSwitches() {
-    this.platform.log.debug(this.constructor.name, 'discoverManualSwitches');
+  discoverManualSwitches(devices: devices) {
+    this.platform.log.debug(this.constructor.name, 'discoverManualSwitches', devices);
+
+    const zones: string[] = [];
+    if (this.platform.settings.showManualSwitches) {
+      zones.push(...devices.controllers);
+    }
 
     for(const zone of this.platform.service.AllZones) {
-      if (this.platform.settings.showManualSwitches && this.platform.service.getHasController(zone)) {
+      if (zones.includes(zone)) {
         this.addAccessory(ManualSwitch, ManualSwitch.name, zone);
       } else {
         this.removeAccessory(ManualSwitch.name, zone);
@@ -115,10 +138,10 @@ export class AccessoryService {
     }
   }
 
-  discoverPump() {
-    this.platform.log.debug(this.constructor.name, 'discoverPump');
+  discoverPump(devices: devices) {
+    this.platform.log.debug(this.constructor.name, 'discoverPump', devices);
 
-    if (this.platform.service.getHasEvaporative()) {
+    if ('evap' in devices) {
       this.addAccessory(Pump, Pump.name);
     } else {
       this.removeAccessory(Pump.name);

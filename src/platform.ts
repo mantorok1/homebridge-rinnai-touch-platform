@@ -7,16 +7,12 @@ import { MqttService } from './mqtt/MqttService';
 import { PushoverService } from './services/PushoverService';
 import { TemperatureService } from './services/TemperatureService';
 
-type devices = {
-  heat: boolean,
-  cool: boolean,
-  evap: boolean,
-  fan: boolean,
-  pump: boolean,
-  controllers: string[],
-  heatZones: string[],
-  coolZones: string[]
-}
+export type devices = { controllers: string[] } & (
+  {heat: string[]} |
+  {heat: string[], cool: string[]} |
+  {heat: string[], evap: string[]} |
+  {evap: string[]}
+)
 
 export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   private deletedAccessories: PlatformAccessory[] = [];
@@ -94,7 +90,7 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
       this.displayDevices(devices);
 
       // Add/Remove accessories
-      this.accessoryService.discover();
+      this.accessoryService.discover(devices);
 
       // Initialise MQTT
       this.mqttService.init();
@@ -113,80 +109,67 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
     const powerState = this.service.getPowerState();
     const fanState = this.service.getFanState();
     const operatingMode = this.service.getOperatingMode();
-    let controllers: string[];
-    let heatZones: string[] = [];
-    let coolZones: string[] = [];
 
     await this.service.setPowerState(false);
     await this.service.setFanState(false);
+
+    const devices = {
+      controllers: this.service.getHasMultiSetPoint()
+        ? this.service.getZonesInstalled()
+        : ['U'],
+    };
+
     if (this.service.getHasHeater()) {
       await this.service.setOperatingMode(OperatingModes.HEATING);
+      devices['heat'] = this.service.getZonesInstalled();
     }
 
-    if (this.service.getHasMultiSetPoint()) {
-      controllers = this.service.getZonesInstalled();
-    } else {
-      controllers = ['U'];
-      heatZones = this.service.getZonesInstalled();
-      if (this.service.getHasCooler()) {
-        await this.service.setOperatingMode(OperatingModes.COOLING);
-        coolZones = this.service.getZonesInstalled();
-      }
+    if (this.service.getHasCooler()) {
+      await this.service.setOperatingMode(OperatingModes.COOLING);
+      devices['cool'] = this.service.getZonesInstalled();
     }
 
     if (this.service.getHasEvaporative()) {
       await this.service.setOperatingMode(OperatingModes.EVAPORATIVE_COOLING);
-      coolZones = this.service.getZonesInstalled();
+      devices['evap'] = this.service.getZonesInstalled();
     }
 
     await this.service.setOperatingMode(operatingMode);
     await this.service.setPowerState(powerState);
     await this.service.setFanState(fanState);
 
-    return {
-      heat: this.service.getHasHeater(),
-      cool: this.service.getHasCooler(),
-      evap: this.service.getHasEvaporative(),
-      fan: true,
-      pump: this.service.getHasEvaporative(),
-      controllers: controllers,
-      heatZones: heatZones,
-      coolZones: coolZones,
-    };
+    return <devices>devices;
   }
 
   private async displayDevices(devices: devices): Promise<void> {
     this.log.debug(this.constructor.name, 'displayDevices', devices);
 
-    this.log.info(`Controllers found: ${devices.controllers.length}`);
-    for(const controller of devices.controllers) {
-      this.log.info(`  ${this.service.getZoneName(controller)}`);
-    }
-    if (devices.heat) {
-      this.log.info(`Gas Heater found. Zones: ${devices.heatZones.length}`);
-      for(const zone of devices.heatZones) {
-        this.log.info(`  ${this.service.getZoneName(zone)}`);
+    if ('controllers' in devices) {
+      this.log.info(`Controllers found: ${devices.controllers.length}`);
+      for(const controller of devices.controllers) {
+        this.log.info(`  ${this.service.getZoneName(controller)}`);
       }
     }
-    if (devices.cool) {
-      this.log.info(`Add-On Cooler found. Zones: ${devices.coolZones.length}`);
-      for(const zone of devices.coolZones) {
-        this.log.info(`  ${this.service.getZoneName(zone)}`);
-      }
-    }
-    if (devices.evap) {
-      this.log.info(`Evaporative Cooler found. Zones: ${devices.coolZones.length}`);
-      for(const zone of devices.coolZones) {
+
+    if ('heat' in devices) {
+      this.log.info(`Gas Heater found. Zones: ${devices.heat.length}`);
+      for(const zone of devices.heat) {
         this.log.info(`  ${this.service.getZoneName(zone)}`);
       }
     }
 
-    if (devices.fan) {
-      this.log.info('Circulation Fan found');
+    if ('cool' in devices) {
+      this.log.info(`Add-On Cooler found. Zones: ${devices.cool.length}`);
+      for(const zone of devices.cool) {
+        this.log.info(`  ${this.service.getZoneName(zone)}`);
+      }
     }
-    if (devices.pump) {
-      this.log.info('Pump found');
+
+    if ('evap' in devices) {
+      this.log.info(`Evaporative Cooler found. Zones: ${devices.evap.length}`);
+      for(const zone of devices.evap) {
+        this.log.info(`  ${this.service.getZoneName(zone)}`);
+      }
     }
   }
-
 }

@@ -65,6 +65,7 @@ If you find the default config is not correct for your system or not to your lik
 |`showAuto`|No|boolean|Show the `AUTO` option in the Thermostat menu|`true`|
 |`showAdvanceSwitches`|No|boolean|Show the Advance Period switch accessory in the Home app|`true`|
 |`showManualSwitches`|No|boolean|Show the Manual switch accessory in the Home app|`true`|
+|`seperateModeAccessories`|No|boolean|Seperate accessories (eg. Zone switches) for each mode (heat & cool)|`false`|
 |`invertComfortLevel`|No|boolean|Invert the Comfort Level when setting temperature (ie. Increasing temperature on Thermostat will decrease the Comfort Level of the Evaporative Cooler)|`true`|
 |`setAutoOperatingState`|No|boolean|Set Operating state to `AUTO` when setting temperature (for Evaporative Cooler only)|`true`|
 |`showHomebridgeEvents`|No|boolean|Include the homebridge events such as getting and setting characterics in the logs|`true`|
@@ -119,6 +120,7 @@ This is useful if you only use Manual Control of your HVAC (ie. no programme sch
         "showAuto": true,
         "showAdvanceSwitches": true,
         "showManualSwitches": true,
+        "seperateModeAccessories": true,
         "showHomebridgeEvents": true,
         "showModuleEvents": true,
         "clearCache": false
@@ -164,6 +166,5 @@ See [Change Log](CHANGELOG.md).
 * The module is also very temperamental about the TCP/IP connection. If it is not not closed properly or re-opened too quickly then a "Connection Refused" error may occur which prevents the plugin from connecting to the module. This may happen if Homebridge is not shutdown gracefully (eg. a crash). If it does happen try restarting Homebridge, the Rinnai Touch module or your router.
 * Multi controller and Evaporative cooling configurations were not able to be tested so may not function properly.
 * Due to the lag between sending a command to the module and it correctly reflecting that command in it's status there may be a short delay of a few seconds before the Home app shows the correct values. eg. When switching from `HEAT` to `COOL` mode some details such as the desired temperature will take a few seconds before the current value is shown.
-* If the number of zones is different between the `HEAT` and `COOL` modes the Zone Switches are dynamically added or removed as necessary. The downside of this is that you will loose any changes you made to the accessory (eg. name).
 * If the WiFi module does not supply a current temperature then the temperature will display as zero in the Thermostat/Heater Cooler accessory. I would have prefered it showed as blank but couldn't find a way to do it. This appears to be a limitation of the service within Homebridge.
 * The 'Heater Cooler' accessory is not currently supported by Home Assistant. See https://github.com/home-assistant/core/issues/30384

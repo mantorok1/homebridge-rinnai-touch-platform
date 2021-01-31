@@ -15,6 +15,10 @@ export abstract class ThermostatBase extends AccessoryBase {
 
     super.setEventHandlers();
 
+    this.platform.temperatureService.on('temperature_change', () => {
+      this.updateValues();
+    });
+
     this.service
       .getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .on('get', this.getCharacteristicValue.bind(this, this.getCurrentTemperature.bind(this), 'CurrentTemperature'));

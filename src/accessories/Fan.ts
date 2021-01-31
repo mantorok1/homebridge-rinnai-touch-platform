@@ -69,6 +69,7 @@ export class Fan extends AccessoryBase {
 
     const speed = Math.round(value / 100.0 * 16.0);
 
+    await this.setFanOn(true);
     await this.platform.service.setFanSpeed(speed);
   }
 

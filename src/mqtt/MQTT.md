@@ -3,20 +3,10 @@
 The plugin is able to operate as an MQTT client. It publishes various topics containing status information which other clients can subscribe to. It also subscribes to topics allowing other clients to send commands to the Rinnai Touch module.
 
 The following formats are supported:
-* Native Rinnai Touch
 * Home Assistant
 * Module Connection Status
 * Module Fault Status
 * Current Temperature Subscription
-
-## Native Rinnai Touch
-
-|Topic|Type|Payload|
-|-|-|-|
-|`native/get`|Publish|Full status that is received from the module|
-|`native/set`|Subscribe|Command in the format `{"Group1": {"Group2": {"Command": "value"}}}`|
-
-See the [Rinnai Touch Module WiFi API](https://hvac-api-docs.s3.us-east-2.amazonaws.com/NBW2API_Iss1.3.pdf) for more details on the content of the status and allowed commands.
 
 ## Home Assistant
 

@@ -5,6 +5,13 @@ import { RinnaiTouchPlatform } from '../platform';
 
 export abstract class AccessoryBase {
   protected service!: Service;
+  protected modeNames = {
+    A: '',
+    H: 'Heat',
+    C: 'Cool',
+    E: 'Cool',
+    F: 'Fan',
+  }
   
   constructor(
     protected readonly platform: RinnaiTouchPlatform,
@@ -33,10 +40,6 @@ export abstract class AccessoryBase {
     this.platform.log.debug('AccessoryBase', 'setEventHandlers');
 
     this.platform.service.session.on('status', () => {
-      this.updateValues();
-    });
-
-    this.platform.temperatureService.on('temperature_change', () => {
       this.updateValues();
     });
   }

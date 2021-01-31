@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 * Deprecate 'Native' MQTT format
 * [FIX] Push notifications not being sent for TCP/IP connection errors
 * New device discovery
+* Add "Seperate Mode Accessories" setting
 
 ## 3.2.4 (2020-12-27)
 

@@ -17,9 +17,13 @@ export class AdvanceSwitch extends AccessoryBase {
   }
 
   get serviceName(): string {
-    return this.platform.service.getHasMultiSetPoint()
-      ? `Advance Period ${this.platformAccessory.context.zone}`
-      : 'Advance Period';
+    let name = 'Advance Period';
+    if (this.platform.service.getHasMultiSetPoint()) {
+      name += ` ${this.platform.service.getZoneName(this.platformAccessory.context.zone)}`;
+    }
+    name += ` ${this.modeNames[this.platformAccessory.context.mode]}`;
+    
+    return name.trim();
   }
 
   setEventHandlers(): void {
@@ -36,7 +40,23 @@ export class AdvanceSwitch extends AccessoryBase {
   getAdvanceSwitchOn(): boolean {
     this.platform.log.debug(this.constructor.name, 'getAdvanceSwitchOn');
 
-    const state: ScheduleOverrideModes = this.platform.service.getScheduleOverride(this.platformAccessory.context.zone);
+    let state: ScheduleOverrideModes = ScheduleOverrideModes.NONE;
+
+    switch(this.platformAccessory.context.mode) {
+      case 'A':
+        state = this.platform.service.getScheduleOverride(this.platformAccessory.context.zone);
+        break;
+      case 'H':
+        if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
+          state = this.platform.service.getScheduleOverride(this.platformAccessory.context.zone);
+        }
+        break;
+      case 'C':
+        if (this.platform.service.getOperatingMode() === OperatingModes.COOLING) {
+          state = this.platform.service.getScheduleOverride(this.platformAccessory.context.zone);
+        }
+        break;
+    }
 
     return state === ScheduleOverrideModes.ADVANCE;
   }
@@ -46,6 +66,22 @@ export class AdvanceSwitch extends AccessoryBase {
 
     if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
       return;
+    }
+
+    if (value) {
+      switch(this.platformAccessory.context.mode) {
+        case 'H':
+          await this.platform.service.setOperatingMode(OperatingModes.HEATING);
+          break;
+        case 'C':
+          await this.platform.service.setOperatingMode(OperatingModes.COOLING);
+          break;
+      }
+
+      if (!this.platform.service.getPowerState()) {
+        await this.platform.service.setFanState(false);
+        await this.platform.service.setPowerState(true);
+      }
     }
 
     const state: ScheduleOverrideModes = value

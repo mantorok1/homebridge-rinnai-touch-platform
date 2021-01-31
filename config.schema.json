@@ -73,6 +73,12 @@
         "default": true,
         "required": false
       },
+      "seperateModeAccessories": {
+        "title": "Seperate accessories for each mode (heat & cool)",
+        "type": "boolean",
+        "default": false,
+        "required": false
+      },
       "invertComfortLevel": {
         "title": "Invert Comfort Level when setting temperature",
         "type": "boolean",
@@ -289,7 +295,8 @@
         "showFan",
         "showAuto",
         "showAdvanceSwitches",
-        "showManualSwitches"
+        "showManualSwitches",
+        "seperateModeAccessories"
       ]
     },
     {

@@ -12,6 +12,8 @@ import { Pump } from './Pump';
 
 export class AccessoryService {
   private accessories: Map<string, AccessoryBase> = new Map();
+  private deviceModes: string[] = [];
+  private deviceModesAll: string[] = ['A', 'H', 'C', 'E', 'F']
 
   constructor(private readonly platform: RinnaiTouchPlatform) { }
 
@@ -19,6 +21,23 @@ export class AccessoryService {
     this.platform.log.debug(this.constructor.name, 'discover');
 
     try {
+      if (this.platform.settings.seperateModeAccessories) {
+        if ('heat' in devices) {
+          this.deviceModes.push('H');
+        }
+        if ('cool' in devices) {
+          this.deviceModes.push('C');
+        }
+        if ('evap' in devices) {
+          this.deviceModes.push('E');
+        }
+      } else {
+        this.deviceModes.push('A');
+      }
+      if (this.platform.settings.showFan && devices.controllers.length > 1) {
+        this.deviceModes.push('F');
+      }
+
       this.discoverThermostats(devices);
       this.discoverHeaterCoolers(devices);
       this.discoverFan();
@@ -95,11 +114,18 @@ export class AccessoryService {
       }
     }
 
+    // Remove the old zone switches that don't have mode
     for(const zone of ['A', 'B', 'C', 'D']) {
-      if (zones.includes(zone)) {
-        this.addAccessory(ZoneSwitch, ZoneSwitch.name, zone);
-      } else {
-        this.removeAccessory(ZoneSwitch.name, zone);
+      this.removeAccessory(ZoneSwitch.name, zone);
+    }
+
+    for(const mode of this.deviceModesAll) {
+      for(const zone of ['A', 'B', 'C', 'D']) {
+        if (zones.includes(zone) && this.deviceModes.includes(mode)) {
+          this.addAccessory(ZoneSwitch, ZoneSwitch.name, zone, mode);
+        } else {
+          this.removeAccessory(ZoneSwitch.name, zone, mode);
+        }
       }
     }
   }
@@ -112,11 +138,18 @@ export class AccessoryService {
       zones.push(...devices.controllers);
     }
 
+    // Remove the old zone switches that don't have mode
     for(const zone of this.platform.service.AllZones) {
-      if (zones.includes(zone)) {
-        this.addAccessory(AdvanceSwitch, AdvanceSwitch.name, zone);
-      } else {
-        this.removeAccessory(AdvanceSwitch.name, zone);
+      this.removeAccessory(AdvanceSwitch.name, zone);
+    }
+
+    for(const mode of ['A', 'H', 'C']) {
+      for(const zone of this.platform.service.AllZones) {
+        if (zones.includes(zone) && this.deviceModes.includes(mode)) {
+          this.addAccessory(AdvanceSwitch, AdvanceSwitch.name, zone, mode);
+        } else {
+          this.removeAccessory(AdvanceSwitch.name, zone, mode);
+        }
       }
     }
   }
@@ -129,11 +162,18 @@ export class AccessoryService {
       zones.push(...devices.controllers);
     }
 
+    // Remove the old zone switches that don't have mode
     for(const zone of this.platform.service.AllZones) {
-      if (zones.includes(zone)) {
-        this.addAccessory(ManualSwitch, ManualSwitch.name, zone);
-      } else {
-        this.removeAccessory(ManualSwitch.name, zone);
+      this.removeAccessory(ManualSwitch.name, zone);
+    }
+
+    for(const mode of ['A', 'H', 'C', 'E']) {
+      for(const zone of this.platform.service.AllZones) {
+        if (zones.includes(zone) && this.deviceModes.includes(mode)) {
+          this.addAccessory(ManualSwitch, ManualSwitch.name, zone, mode);
+        } else {
+          this.removeAccessory(ManualSwitch.name, zone, mode);
+        }
       }
     }
   }
@@ -150,21 +190,22 @@ export class AccessoryService {
 
   addAccessory<TAccessory extends AccessoryBase>(
     Accessory: new (platform: RinnaiTouchPlatform, accessory: PlatformAccessory) => TAccessory,
-    name: string, zone?: string,
+    name: string, zone?: string, mode?: string,
   ): void {
-    this.platform.log.debug(this.constructor.name, 'addAccessory', 'Accessory', name, zone);
+    this.platform.log.debug(this.constructor.name, 'addAccessory', 'Accessory', name, zone, mode);
 
-    const key: string = this.getKey(name, zone);
+    const key: string = this.getKey(name, zone, mode);
 
     if (this.accessories.has(key)) {
       return;
     }
 
-    const displayName: string = zone ? `${name} ${zone}` : name;
+    const displayName: string = name + (zone ? ` ${zone}` : '' ) + (mode ? ` ${mode}` : '');
     const uuid: string = this.platform.api.hap.uuid.generate(key);
     const platformAccessory: PlatformAccessory = new this.platform.api.platformAccessory(displayName, uuid);
     platformAccessory.context.type = name.toLowerCase();
     platformAccessory.context.zone = zone;
+    platformAccessory.context.mode = mode;
     platformAccessory.context.key = key;
 
     const accessory = new Accessory(this.platform, platformAccessory);
@@ -175,10 +216,10 @@ export class AccessoryService {
     this.platform.log.info(`Add ${platformAccessory.displayName}`);
   }
 
-  removeAccessory(name: string, zone?: string): void {
-    this.platform.log.debug(this.constructor.name, 'removeAccessory', name, zone);
+  removeAccessory(name: string, zone?: string, mode?: string): void {
+    this.platform.log.debug(this.constructor.name, 'removeAccessory', name, zone, mode);
 
-    const key: string = this.getKey(name, zone);
+    const key: string = this.getKey(name, zone, mode);
 
     if (!this.accessories.has(key)) {
       return;
@@ -236,9 +277,9 @@ export class AccessoryService {
     return;
   }
 
-  getKey(name:string, zone?: string): string {
+  getKey(name:string, zone?: string, mode?: string): string {
     this.platform.log.debug(this.constructor.name, 'getKey', zone);
 
-    return zone ? `${name}_${zone}` : name;
+    return name + (zone ? `_${zone}` : '' ) + (mode ? `_${mode}` : '');
   }
 }

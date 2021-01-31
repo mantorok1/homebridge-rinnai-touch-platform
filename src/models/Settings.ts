@@ -108,6 +108,10 @@ export class Settings {
     return <boolean | undefined>this.config.showManualSwitches ?? true;
   }
 
+  get seperateModeAccessories(): boolean {
+    return <boolean | undefined>this.config.seperateModeAccessories ?? false;
+  }
+
   get invertComfortLevel(): boolean {
     return <boolean | undefined>this.config.invertComfortLevel ?? true;
   }

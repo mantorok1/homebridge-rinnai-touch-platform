@@ -1,5 +1,6 @@
 import { PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
+import { OperatingModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
 
 export class ZoneSwitch extends AccessoryBase {
@@ -16,7 +17,9 @@ export class ZoneSwitch extends AccessoryBase {
   }
 
   get serviceName(): string {
-    return this.platform.service.getZoneName(this.platformAccessory.context.zone);
+    const name = this.platform.service.getZoneName(this.platformAccessory.context.zone) + ' ' +
+      this.modeNames[this.platformAccessory.context.mode];
+    return name.trim();
   }
 
   setEventHandlers(): void {
@@ -33,11 +36,55 @@ export class ZoneSwitch extends AccessoryBase {
   getZoneSwitchOn(): boolean {
     this.platform.log.debug(this.constructor.name, 'getZoneSwitchOn');
 
-    return this.platform.service.getUserEnabled(this.platformAccessory.context.zone);
+    switch(this.platformAccessory.context.mode) {
+      case 'A':
+        return this.platform.service.getUserEnabled(this.platformAccessory.context.zone);
+      case 'H':
+        return this.platform.service.getOperatingMode() === OperatingModes.HEATING
+          ? this.platform.service.getUserEnabled(this.platformAccessory.context.zone)
+          : false;
+      case 'C':
+        return this.platform.service.getOperatingMode() === OperatingModes.COOLING
+          ? this.platform.service.getUserEnabled(this.platformAccessory.context.zone)
+          : false;
+      case 'E':
+        return this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING
+          ? this.platform.service.getUserEnabled(this.platformAccessory.context.zone)
+          : false;
+      case 'F':
+        return this.platform.service.getFanState()
+          ? this.platform.service.getUserEnabled(this.platformAccessory.context.zone)
+          : false;
+      default:
+        return false;
+    }
   }
 
   async setZoneSwitchOn(value: boolean): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setZoneSwitchOn', value);
+
+    if (value) {
+      switch(this.platformAccessory.context.mode) {
+        case 'H':
+          await this.platform.service.setOperatingMode(OperatingModes.HEATING);
+          break;
+        case 'C':
+          await this.platform.service.setOperatingMode(OperatingModes.COOLING);
+          break;
+        case 'E':
+          await this.platform.service.setOperatingMode(OperatingModes.EVAPORATIVE_COOLING);
+          break;
+      }
+
+      if (this.platformAccessory.context.mode === 'F') {
+        await this.platform.service.setPowerState(false);
+        await this.platform.service.setFanState(true);
+      } else {
+        if (!this.platform.service.getFanState() && !this.platform.service.getPowerState()) {
+          await this.platform.service.setPowerState(true);
+        }
+      }
+    }
 
     await this.platform.service.setUserEnabled(value, this.platformAccessory.context.zone);
   }

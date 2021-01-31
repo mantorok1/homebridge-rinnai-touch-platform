@@ -18,9 +18,13 @@ export class ManualSwitch extends AccessoryBase {
   }
 
   get serviceName(): string {
-    return this.platform.service.getHasMultiSetPoint()
-      ? `Manual ${this.platformAccessory.context.zone}`
-      : 'Manual';
+    let name = 'Manual';
+    if (this.platform.service.getHasMultiSetPoint()) {
+      name += ` ${this.platform.service.getZoneName(this.platformAccessory.context.zone)}`;
+    }
+    name += ` ${this.modeNames[this.platformAccessory.context.mode]}`;
+    
+    return name.trim();
   }
 
   setEventHandlers(): void {
@@ -37,7 +41,28 @@ export class ManualSwitch extends AccessoryBase {
   getManualSwitchOn(): boolean {
     this.platform.log.debug(this.constructor.name, 'getManualSwitchOn');
 
-    const state: ControlModes = this.platform.service.getControlMode(this.platformAccessory.context.zone);
+    let state: ControlModes = ControlModes.AUTO;
+
+    switch(this.platformAccessory.context.mode) {
+      case 'A':
+        state = this.platform.service.getControlMode(this.platformAccessory.context.zone);
+        break;
+      case 'H':
+        if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
+          state = this.platform.service.getControlMode(this.platformAccessory.context.zone);
+        }
+        break;
+      case 'C':
+        if (this.platform.service.getOperatingMode() === OperatingModes.COOLING) {
+          state = this.platform.service.getControlMode(this.platformAccessory.context.zone);
+        }
+        break;
+      case 'E':
+        if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
+          state = this.platform.service.getControlMode(this.platformAccessory.context.zone);
+        }
+        break;
+    }
 
     return state === ControlModes.MANUAL;
   }
@@ -45,9 +70,23 @@ export class ManualSwitch extends AccessoryBase {
   async setManualSwitchOn(value: boolean): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setManualSwitchOn', value);
 
-    // For Evap the unit must be ON before setting control mode
-    if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
-      await this.platform.service.setPowerState(true);
+    if (value) {
+      switch(this.platformAccessory.context.mode) {
+        case 'H':
+          await this.platform.service.setOperatingMode(OperatingModes.HEATING);
+          break;
+        case 'C':
+          await this.platform.service.setOperatingMode(OperatingModes.COOLING);
+          break;
+        case 'E':
+          await this.platform.service.setOperatingMode(OperatingModes.EVAPORATIVE_COOLING);
+          break;
+      }
+
+      if (!this.platform.service.getPowerState()) {
+        await this.platform.service.setFanState(false);
+        await this.platform.service.setPowerState(true);
+      }
     }
 
     const state: ControlModes = value

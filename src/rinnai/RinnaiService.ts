@@ -182,7 +182,7 @@ export class RinnaiService extends events.EventEmitter {
     const speed = this.session.status.getState(States.FanSpeed);
     return speed === undefined
       ? 0.0
-      : parseInt(speed) / 16.0 * 100.0;
+      : parseInt(speed);
   }
 
   getPumpState(): boolean {

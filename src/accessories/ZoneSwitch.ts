@@ -36,6 +36,12 @@ export class ZoneSwitch extends AccessoryBase {
   getZoneSwitchOn(): boolean {
     this.platform.log.debug(this.constructor.name, 'getZoneSwitchOn');
 
+    if (this.platformAccessory.context.mode !== 'F') {
+      if (this.platform.settings.seperateFanZoneSwitches && this.platform.service.getFanState()) {
+        return false;
+      }
+    }
+
     switch(this.platformAccessory.context.mode) {
       case 'A':
         return this.platform.service.getUserEnabled(this.platformAccessory.context.zone);
@@ -76,12 +82,29 @@ export class ZoneSwitch extends AccessoryBase {
           break;
       }
 
+      if (!this.platform.service.getZoneInstalled(this.platformAccessory.context.zone)) {
+        const zoneName = this.platform.service.getZoneName(this.platformAccessory.context.zone);
+        this.platform.log.warn(`'${zoneName}' cannot be turned on as it's not installed`);
+        setTimeout(this.updateValues.bind(this), 1000);
+        return;
+      }
+
       if (this.platformAccessory.context.mode === 'F') {
+        if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
+          this.platform.log.warn('Fan Zone Switch is not supported for Evaporative Cooling');
+          setTimeout(this.updateValues.bind(this), 1000);
+          return;
+        }
         await this.platform.service.setPowerState(false);
         await this.platform.service.setFanState(true);
       } else {
-        if (!this.platform.service.getFanState() && !this.platform.service.getPowerState()) {
+        if (this.platform.settings.seperateFanZoneSwitches && this.platform.service.getFanState()) {
+          await this.platform.service.setFanState(false);
           await this.platform.service.setPowerState(true);
+        } else {
+          if (!this.platform.service.getFanState() && !this.platform.service.getPowerState()) {
+            await this.platform.service.setPowerState(true);
+          }
         }
       }
     }

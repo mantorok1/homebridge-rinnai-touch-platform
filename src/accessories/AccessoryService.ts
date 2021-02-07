@@ -105,13 +105,33 @@ export class AccessoryService {
   discoverZoneSwitches(devices: devices): void {
     this.platform.log.debug(this.constructor.name, 'discoverZoneSwitches', devices);
 
-    const zones: string[] = [];
+    const modeZones: Record<string, string[]> = {
+      A: [],
+      H: [],
+      C: [],
+      E: [],
+      F: [],
+    };
+
     if (this.platform.settings.zoneType === 'S') {
-      if ('heat' in devices) {
-        zones.push(...devices.heat);
-      } else if ('evap' in devices) {
-        zones.push(...devices.evap);
+      if (this.platform.settings.seperateModeAccessories) {
+        modeZones['H'] = 'heat' in devices ? devices.heat : [];
+        modeZones['C'] = 'cool' in devices ? devices.cool : [];
+        modeZones['E'] = 'evap' in devices ? devices.evap : [];
+      } else {
+        modeZones['A'] = [...new Set([
+          ...('heat' in devices ? devices.heat : []),
+          ...('cool' in devices ? devices.cool : []),
+          ...('evap' in devices ? devices.evap : []),
+        ])];
       }
+    }
+
+    if (this.platform.settings.seperateFanZoneSwitches) {
+      modeZones['F'] = [...new Set([
+        ...('heat' in devices ? devices.heat : []),
+        ...('cool' in devices ? devices.cool : []),
+      ])];
     }
 
     // Remove the old zone switches that don't have mode
@@ -119,9 +139,9 @@ export class AccessoryService {
       this.removeAccessory(ZoneSwitch.name, zone);
     }
 
-    for(const mode of this.deviceModesAll) {
+    for(const mode of Object.keys(modeZones)) {
       for(const zone of ['A', 'B', 'C', 'D']) {
-        if (zones.includes(zone) && this.deviceModes.includes(mode)) {
+        if (modeZones[mode].includes(zone)) {
           this.addAccessory(ZoneSwitch, ZoneSwitch.name, zone, mode);
         } else {
           this.removeAccessory(ZoneSwitch.name, zone, mode);

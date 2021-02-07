@@ -129,9 +129,13 @@ export class HeaterCooler extends ThermostatBase {
   getActive(): number {
     this.platform.log.debug(this.constructor.name, 'getActive');
 
-    const state = this.platform.service.getHasMultiSetPoint() || this.platformAccessory.context.zone === 'U'
+    let state = this.platform.service.getHasMultiSetPoint() || this.platformAccessory.context.zone === 'U'
       ? this.platform.service.getPowerState()
       : this.platform.service.getUserEnabled(this.platformAccessory.context.zone);
+
+    if (this.platform.settings.seperateFanZoneSwitches && this.platform.service.getFanState()) {
+      state = false;
+    }
 
     return state
       ? this.platform.Characteristic.Active.ACTIVE
@@ -178,13 +182,14 @@ export class HeaterCooler extends ThermostatBase {
     this.platform.log.debug(this.constructor.name, 'setActive', value);
 
     if (!this.platform.service.getHasMultiSetPoint() && this.platformAccessory.context.zone !== 'U') {
-      if (this.platform.service.getPowerState() || this.platform.service.getFanState()) {
-        await this.platform.service.setUserEnabled(
-          value === this.platform.Characteristic.Active.ACTIVE,
-          this.platformAccessory.context.zone,
-        );
-        return;
+      if (!this.platform.service.getPowerState() && !this.platform.service.getFanState()) {
+        await this.platform.service.setPowerState(true);
       }
+      await this.platform.service.setUserEnabled(
+        value === this.platform.Characteristic.Active.ACTIVE,
+        this.platformAccessory.context.zone,
+      );
+      return;
     }
 
     if (this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING &&

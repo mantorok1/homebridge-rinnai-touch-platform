@@ -65,9 +65,10 @@ If you find the default config is not correct for your system or not to your lik
 |`showAuto`|No|boolean|Show the `AUTO` option in the Thermostat menu|`true`|
 |`showAdvanceSwitches`|No|boolean|Show the Advance Period switch accessory in the Home app|`true`|
 |`showManualSwitches`|No|boolean|Show the Manual switch accessory in the Home app|`true`|
-|`seperateModeAccessories`|No|boolean|Seperate accessories (eg. Zone switches) for each mode (heat & cool)|`false`|
-|`invertComfortLevel`|No|boolean|Invert the Comfort Level when setting temperature (ie. Increasing temperature on Thermostat will decrease the Comfort Level of the Evaporative Cooler)|`true`|
-|`setAutoOperatingState`|No|boolean|Set Operating state to `AUTO` when setting temperature (for Evaporative Cooler only)|`true`|
+|`seperateModeAccessories`|No|boolean|Seperate accessories (eg. Zone switches) for each mode (heat & cool)<br/>NOTE: Only applicable for systems that have both heating and cooling. If `zoneType` is set to `H` (HeaterCooler) then zone switches are not shown|`false`|
+|`seperateFanZoneSwitches`|No|boolean|Seperate zone switches for circulation fan<br/>NOTE: Not applicable for Evaporative Cooling|`false`|
+|`invertComfortLevel`|No|boolean|Invert the Comfort Level when setting temperature (ie. Increasing temperature on Thermostat will decrease the Comfort Level)<br/>NOTE: Only applicable for Evaporative Cooling|`true`|
+|`setAutoOperatingState`|No|boolean|Set Operating state to `AUTO` when setting temperature<br/>NOTE: Only applicable for Evaporative Cooling|`true`|
 |`showHomebridgeEvents`|No|boolean|Include the homebridge events such as getting and setting characterics in the logs|`true`|
 |`showModuleEvents`|No|boolean|Include the module's events (eg. commands sent) in the logs|`true`|
 |`showModuleStatus`|No|boolean|Include the module's status in the logs|`false`|
@@ -121,6 +122,7 @@ This is useful if you only use Manual Control of your HVAC (ie. no programme sch
         "showAdvanceSwitches": true,
         "showManualSwitches": true,
         "seperateModeAccessories": true,
+        "seperateFanZoneSwitches": true,
         "showHomebridgeEvents": true,
         "showModuleEvents": true,
         "clearCache": false
@@ -163,7 +165,7 @@ See [Change Log](CHANGELOG.md).
 ## Known Limitations / Troubleshooting
 * The Rinnai Touch module appears to only allow a single client to connect to it at one time via TCP/IP. As the plugin only supports a TCP/IP connection to the module no other connections from other clients (such as the TouchApp by Rinnai) can be active at the time the plugin starts. Once a connection is established the plugin will keep it open to prevent other clients connecting to it via TCP/IP. NOTE: Once the plugin has started you can then use the TouchApp as it will connect to the module via the cloud.
 * The module will disconnect if it has not received any requests after 5 minutes. To prevent this the plugin will send a blank command every minute.
-* The module is also very temperamental about the TCP/IP connection. If it is not not closed properly or re-opened too quickly then a "Connection Refused" error may occur which prevents the plugin from connecting to the module. This may happen if Homebridge is not shutdown gracefully (eg. a crash). If it does happen try restarting Homebridge, the Rinnai Touch module or your router.
+* The module is also very temperamental about the TCP/IP connection. If it is not not closed properly or re-opened too quickly then a "Connection Refused" error may occur which prevents the plugin from connecting to the module. This may happen if Homebridge is not shutdown gracefully (eg. a crash). If it does happen try restarting Homebridge, the Rinnai Touch module or your Access Point/Router. If you multiple Access Points try restarting all of them.
 * Multi controller and Evaporative cooling configurations were not able to be tested so may not function properly.
 * Due to the lag between sending a command to the module and it correctly reflecting that command in it's status there may be a short delay of a few seconds before the Home app shows the correct values. eg. When switching from `HEAT` to `COOL` mode some details such as the desired temperature will take a few seconds before the current value is shown.
 * If the WiFi module does not supply a current temperature then the temperature will display as zero in the Thermostat/Heater Cooler accessory. I would have prefered it showed as blank but couldn't find a way to do it. This appears to be a limitation of the service within Homebridge.

@@ -112,6 +112,10 @@ export class Settings {
     return <boolean | undefined>this.config.seperateModeAccessories ?? false;
   }
 
+  get seperateFanZoneSwitches(): boolean {
+    return <boolean | undefined>this.config.seperateFanZoneSwitches ?? false;
+  }
+
   get invertComfortLevel(): boolean {
     return <boolean | undefined>this.config.invertComfortLevel ?? true;
   }

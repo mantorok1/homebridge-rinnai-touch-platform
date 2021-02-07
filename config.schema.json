@@ -79,6 +79,12 @@
         "default": false,
         "required": false
       },
+      "seperateFanZoneSwitches": {
+        "title": "Seperate zone switches for circlulation fan",
+        "type": "boolean",
+        "default": false,
+        "required": false
+      },
       "invertComfortLevel": {
         "title": "Invert Comfort Level when setting temperature",
         "type": "boolean",
@@ -296,7 +302,8 @@
         "showAuto",
         "showAdvanceSwitches",
         "showManualSwitches",
-        "seperateModeAccessories"
+        "seperateModeAccessories",
+        "seperateFanZoneSwitches"
       ]
     },
     {

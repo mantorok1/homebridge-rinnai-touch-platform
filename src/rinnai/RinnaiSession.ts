@@ -28,7 +28,7 @@ export class RinnaiSession extends events.EventEmitter {
     showModuleStatus?: boolean,
   } = {}) {
     super();
-    this.setMaxListeners(20);
+    this.setMaxListeners(40);
 
     this.log = options.log ?? console;
     if (options.address) {
@@ -133,11 +133,11 @@ export class RinnaiSession extends events.EventEmitter {
       const states = command.toJson(this.status);
       if (!command.isPing) {
         if (states === undefined) {
-          this.log.info(`${command.toString()} is invalid due to module's current Status`);
+          this.log.warn(`${command.toString()} is invalid due to module's current Status`);
           return;
         }
         if (this.status.hasStates(states)) {
-          this.log.info(`${command.toString()} not required as Status already in the requested state`);
+          this.log.debug(`${command.toString()} not required as Status already in the requested state`);
           return;
         }
         payload += JSON.stringify(states);

@@ -154,20 +154,6 @@ export class RinnaiService extends events.EventEmitter {
     return zones;
   }
 
-  // TODO: Deprecate this
-  getHasController(zone: string): boolean {
-    if (this.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
-      return zone === 'U';
-    }
-    if (this.getHasMultiSetPoint()) {
-      return zone === 'U'
-        ? false
-        : this.getZoneInstalled(zone);
-    } else {
-      return zone === 'U';
-    }
-  }
-
   getPowerState(): boolean {
     return this.session.status.getState(States.PowerState) === 'N';
   }
@@ -213,6 +199,23 @@ export class RinnaiService extends events.EventEmitter {
         return ScheduleOverrideModes.ADVANCE;
       default:
         return ScheduleOverrideModes.OPERATION;
+    }
+  }
+
+  getHeaterCoolerActive(zone = 'U'): boolean {
+    switch (this.getOperatingMode()) {
+      case OperatingModes.HEATING:
+        return this.getHasMultiSetPoint() || zone !== 'U'
+          ? this.session.status.getState(States.AutoEnabled, zone) === 'Y'
+          : this.session.status.getState(States.CallingForHeat) === 'Y';
+      case OperatingModes.COOLING:
+        return this.getHasMultiSetPoint() || zone !== 'U'
+          ? this.session.status.getState(States.AutoEnabled, zone) === 'Y'
+          : this.session.status.getState(States.CallingForCool) === 'Y';
+      case OperatingModes.EVAPORATIVE_COOLING:
+        return this.session.status.getState(States.CoolerIsBusy) === 'Y';
+      default:
+        return false;
     }
   }
 

@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 * New device discovery
 * Add "Seperate Mode Accessories" setting
 * Add "Seperate Fan Zone Switches" setting
+* AUTO mode in Thermostat/HeaterCooler accessory sets temperature range
 
 ## 3.2.4 (2020-12-27)
 

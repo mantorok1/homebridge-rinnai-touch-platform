@@ -27,6 +27,9 @@ export enum States {
   ControlMode,  // Auto, Manual
   SetPointTemperature,
   ScheduleOverride,  // None, Advance, Operation
+  CallingForHeat,
+  CallingForCool,
+  CoolerIsBusy,
   AutoEnabled,
   MeasuredTemperature,
   SchedulePeriod,  // Wake, Leave, Return, Presleep, Sleep  
@@ -181,6 +184,10 @@ export class Status {
         return this.modeEvap
           ? undefined
           : this.hasMultiSetPoint ? `Z${zone}O` : 'GSO';
+      case States.CallingForHeat:
+      case States.CallingForCool:
+      case States.CoolerIsBusy:
+        return 'GSS';
       case States.AutoEnabled:
       case States.MeasuredTemperature:
         return this.modeEvap ? 'GSS' : `Z${zone}S`;
@@ -246,6 +253,12 @@ export class Status {
         return 'SP';
       case States.ScheduleOverride:
         return this.modeEvap ? undefined : 'AO';
+      case States.CallingForHeat:
+        return 'HC';
+      case States.CallingForCool:
+        return 'CC';
+      case States.CoolerIsBusy:
+        return 'BY';
       case States.AutoEnabled:
         return this.modeEvap ? `Z${zone}AE` : 'AE';
       case States.MeasuredTemperature:

@@ -223,9 +223,15 @@ export class HomeAssistantFormat implements IMqttFormat {
     try {
       const state: boolean = payload.toLowerCase() === 'on';
 
-      // TODO: This won't work for evap which must be on for fan to work ???
-      if (state && this.platform.service.getPowerState()) {
-        await this.platform.service.setPowerState(false);
+      if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
+        if (state && !this.platform.service.getPowerState()) {
+          await this.platform.service.setPowerState(true);
+        }
+        await this.platform.service.setControlMode(ControlModes.MANUAL);
+      } else {
+        if (state && this.platform.service.getPowerState()) {
+          await this.platform.service.setPowerState(false);
+        }
       }
 
       await this.platform.service.setFanState(state);

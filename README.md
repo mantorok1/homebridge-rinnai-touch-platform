@@ -2,7 +2,7 @@
 
 [![npm](https://badgen.net/npm/v/homebridge-rinnai-touch-platform) ![npm](https://badgen.net/npm/dt/homebridge-rinnai-touch-platform)](https://www.npmjs.com/package/homebridge-rinnai-touch-platform) [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 
-This Homebridge Plugin allows you to control a Brivis HVAC system via a Rinnai Touch WiFi Module. It supports the following operation modes:
+This Homebridge Plugin allows you to control a Rinnai/Brivis HVAC system via a Rinnai/Brivis Touch WiFi Module. It supports the following configurations:
 * Single Temperature Set Point (ie. one controller with 1 to 5 zones including the Common zone)
 * Multi Temperature Set Point (ie. one controller per zone, up to 4)
 
@@ -10,7 +10,7 @@ Functions available:
 * Displaying the current state (eg. idle, heating, cooling)
 * Switching to Off, Heating or Cooling modes
 * Displaying the current temperature (depends on controller model)
-* Setting the desired temperature
+* Setting the desired temperature or temperature range (`AUTO` mode)
 * Switching zones On and Off
 * Switching the circulation fan On and Off as well as setting rotation speed
 * Turning the water pump On and Off (for Evaporative Cooling only)
@@ -25,12 +25,24 @@ This plugin will add one or more accessories to the Home app depending on the st
 
 |Accessory|Description|
 |-|-|
-|Thermostat / Heater&nbsp;Cooler|Displays the current temperature, units (Celsius or Fahrenheit) and mode of the Brivis HVAC system. It allows you to set the desired temperature and change the mode. Modes are:<ul><li>`OFF` - System is off</li><li>`HEAT` - System is in heating mode</li><li>`COOL` - System is in cooling mode</li><li>`AUTO` - Returns system into Auto mode and the current period of the programme schedule (this option can be hidden with the `showAuto` config option). It will return to the `HEAT` or `COOL` mode when complete</li></ul>NOTES:<ul><li>One accessory will be added for each controller</li><li>Temperature units in the accessory do not determine which unit to use when displaying temperatures in the Home app. This is controlled by your phone's settings</li></ul>|
-|Zone Switch|Shows if the zone is currently On or Off and allows you to change it. Zone Switches are shown if the operation mode is 'Single Temperature Set Point' and at least one zone is enabled (excluding the Common zone)<br/>NOTE: The 'Heater Cooler' accessory can be used as a zone switch|
+|Thermostat / Heater&nbsp;Cooler|Displays the current temperature, units (Celsius or Fahrenheit) and mode of the HVAC system. It allows you to set the desired temperature and change the mode. Modes are:<ul><li>`OFF` - No heating or cooling</li><li>`HEAT` - Heat to the set temperature</li><li>`COOL` - Cool to the set temperature</li><li>`AUTO` -  Maintain the temperature between the set range (see "Notes about AUTO mode" below)</li></ul>NOTES:<ul><li>One accessory will be added for each controller</li><li>Temperature units in the accessory do not determine which unit to use when displaying temperatures in the Home app. This is controlled by your phone's settings</li></ul>|
+|Zone Switch|Shows if the zone is currently On or Off and allows you to change it. Zone Switches are shown if the operation mode is 'Single Temperature Set Point' and at least one zone is enabled (excluding the Common zone)<br/>NOTE: The 'Heater Cooler' accessory can be used as a zone switch which has the advantage of showing the zone's temperature|
 |Fan|Displays the current state and speed setting of the circulation fan. Allows you to turn it Off or set the rotation speed<br/>NOTE: The fan can only be used when the Thermostat is in the `OFF` mode or `COOL` mode for Evaporative Cooling|
 |Advance Period Switch|Shows if the Period of the Programme Schedule has been advanced and allows you to change it|
 |Manual Switch|Shows if the Manual mode is On or Off and allows you to change it|
 |Pump|Displays the current state of the pump if you have Evaporative Cooling. Allows you to turn it On or Off<br/>NOTE: The pump can only be used when the Thermostat is in `COOL` mode.|
+
+### Notes about AUTO mode
+
+This is an experimental feature so may be a little "buggy".
+
+The HomeKit Thermostat/Heater Cooler accessory's `AUTO` mode is used to set a temperature range which the HVAC will attempt to keep your home's temperature within. The module does not support this type of operation so this plugin attempts to simulate this behaviour by checking the current temperature with the temperature limits set in `AUTO` mode. It will switch mode between Heating & Cooling where necessary to maintain the temperature within the specified range. The module does have it's own concept of an AUTO mode (aka Schedule mode) but this is for setting temperatures for different periods of the day (or setting a Comfort Level for Evaporative Cooling). For the accessory's `AUTO` mode to work the module's `AUTO` mode cannot be used.
+
+Requirements for `AUTO` mode to function correctly:
+* `showAuto` configuration option set to `true`
+* The HVAC must remain in `MANUAL` operation
+* The HVAC must have Heating and Add-on Cooling. Evaporative cooling is not supported
+* The controller(s) must supply the current temperature to the module. Not all controllers support this. Alternatively you can supply the current temperature from 3rd party temperature sensors using MQTT, however, I'm not sure how well this will work.
 
 ## Installation
 Note: This plugin requires [Homebridge](https://homebridge.io) (version 1.0.0 or above) to be installed first.

@@ -7,6 +7,7 @@ export class TemperatureService extends events.EventEmitter {
 
   constructor(private readonly platform: RinnaiTouchPlatform) {
     super();
+    this.setMaxListeners(15);
     for(const zone of this.platform.service.AllZones) {
       this.temperatures[zone] = undefined;
       this.override[zone] = false;

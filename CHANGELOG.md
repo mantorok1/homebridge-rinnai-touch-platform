@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## NEXT
+## 3.3.1 (2021-02-21)
 
 * [FIX] Get Target Temperature causes warning when HVAC is off (in Homebridge 1.3.0)
 

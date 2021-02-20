@@ -180,10 +180,10 @@ export class RinnaiService extends events.EventEmitter {
     return controlMode === 'M' ? ControlModes.MANUAL : ControlModes.AUTO;
   }
 
-  getSetPointTemperature(zone?: string): number {
+  getSetPointTemperature(zone?: string): number | undefined {
     const temperature = this.session.status.getState(States.SetPointTemperature, zone);
     if (temperature === undefined) {
-      return 0.0;
+      return undefined;
     }
     return this.session.status.modeEvap
       ? this.toTemperature(temperature)

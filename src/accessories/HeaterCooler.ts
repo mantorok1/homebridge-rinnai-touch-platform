@@ -124,7 +124,7 @@ export class HeaterCooler extends ThermostatBase {
       this.platformAccessory.context.coolingThresholdTemperature = 28.0;
 
       const setSetPointTemperature = this.platform.service.getSetPointTemperature(this.platformAccessory.context.zone);
-      if (setSetPointTemperature === 0.0) {
+      if (setSetPointTemperature === undefined) {
         return;
       }
       if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
@@ -274,7 +274,7 @@ export class HeaterCooler extends ThermostatBase {
 
     if (this.platform.service.getOperatingMode() === OperatingModes.HEATING && !this.switching) {
       const setPointTemperature = this.platform.service.getSetPointTemperature(zone);
-      if (setPointTemperature !== 0.0) {
+      if (setPointTemperature !== undefined) {
         this.platformAccessory.context.heatingThresholdTemperature = setPointTemperature;
       }
     }
@@ -291,7 +291,7 @@ export class HeaterCooler extends ThermostatBase {
 
     if (this.platform.service.getOperatingMode() === OperatingModes.COOLING && !this.switching) {
       const setPointTemperature = this.platform.service.getSetPointTemperature(zone);
-      if (setPointTemperature !== 0.0) {
+      if (setPointTemperature !== undefined) {
         this.platformAccessory.context.coolingThresholdTemperature = setPointTemperature;
       }
     }

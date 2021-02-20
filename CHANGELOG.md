@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## NEXT
+
+* [FIX] Get Target Temperature causes warning when HVAC is off (in Homebridge 1.3.0)
+
 ## 3.3.0 (2021-02-14)
 
 * Major code refactor to resolve commands at send time rather than request time

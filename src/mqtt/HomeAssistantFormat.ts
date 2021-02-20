@@ -372,11 +372,11 @@ export class HomeAssistantFormat implements IMqttFormat {
       payload = {};
       for (const zone of this.platform.service.getZonesInstalled()) {
         if (this.platform.service.getSetPointTemperature(zone) !== undefined) {
-          payload[zone] = this.platform.service.getSetPointTemperature(zone);
+          payload[zone] = this.platform.service.getSetPointTemperature(zone) ?? 0;
         }
       }
     } else {
-      payload = this.platform.service.getSetPointTemperature();
+      payload = this.platform.service.getSetPointTemperature() ?? 0;
     }
 
     this.publish('hvac/temperature/get', JSON.stringify(payload));

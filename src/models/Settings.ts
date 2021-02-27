@@ -137,7 +137,11 @@ export class Settings {
   }
 
   get clearCache(): boolean {
-    return <boolean | undefined>this.config.clearCache ?? true;
+    return <boolean | undefined>this.config.clearCache ?? false;
+  }
+
+  get forceAutoDiscovery(): boolean {
+    return <boolean | undefined>this.config.forceAutoDiscovery ?? false;
   }
 
   get mqtt(): MqttSettings | undefined {

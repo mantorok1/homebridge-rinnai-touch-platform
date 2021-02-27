@@ -6,6 +6,8 @@ import { AccessoryService } from './accessories/AccessoryService';
 import { MqttService } from './mqtt/MqttService';
 import { PushoverService } from './services/PushoverService';
 import { TemperatureService } from './services/TemperatureService';
+import fs = require('fs');
+import path = require('path');
 
 export type devices = { controllers: string[] } & (
   {heat: string[]} |
@@ -106,12 +108,42 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   private async getDevices(): Promise<devices> {
     this.log.debug(this.constructor.name, 'getDevices');
 
+    let devices: devices | undefined;
+    const cacheFile = path.join(this.api.user.storagePath(), 'RinnaiTouchPlatform.json');
+
+    try {
+      if (this.settings.forceAutoDiscovery) {
+        this.log.info('Forcing Auto-Discovery of config');
+      } else {
+        const content = await fs.promises.readFile(cacheFile, { encoding: 'utf8' });
+        this.log.info(`Read config from cache [${cacheFile}]`);
+        devices = JSON.parse(content);
+      }
+    } finally {
+      if (devices === undefined) {
+        devices = await this.findDevices();
+        try {
+          this.log.info(`Writing config to cache [${cacheFile}]`);
+          const content = JSON.stringify(devices);
+          await fs.promises.writeFile(cacheFile, content, { encoding: 'utf8'});
+        } catch(ex) {
+          this.log.warn(`Writing config failed [${ex.message}]`);
+        }
+      }
+    }
+
+    return devices;
+  }
+
+  private async findDevices(): Promise<devices> {
+    this.log.debug(this.constructor.name, 'findDevices');
+
     const powerState = this.service.getPowerState();
     const fanState = this.service.getFanState();
     const operatingMode = this.service.getOperatingMode();
 
-    await this.service.setPowerState(false);
     await this.service.setFanState(false);
+    await this.service.setPowerState(true);
 
     const devices = {
       controllers: this.service.getHasMultiSetPoint()

@@ -121,6 +121,12 @@
         "default": false,
         "required": false
       },
+      "forceAutoDiscovery": {
+        "title": "Force auto-discovery",
+        "type": "boolean",
+        "default": false,
+        "required": false
+      },
       "mqtt": {
         "type": "object",
         "properties": {
@@ -432,7 +438,8 @@
         "showHomebridgeEvents",
         "showModuleEvents",
         "showModuleStatus",
-        "clearCache"
+        "clearCache",
+        "forceAutoDiscovery"
       ]
     }
   ]

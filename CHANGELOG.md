@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## 3.3.2 (2021-02-28)
 
 * [FIX] HeaterCooler intermittently turning on and setting to AUTO mode
+* [FIX] Incorrect zones found during auto-discovery
+* Cache discovered HVAC configuration for faster startup
 
 ## 3.3.1 (2021-02-21)
 

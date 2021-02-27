@@ -84,7 +84,8 @@ If you find the default config is not correct for your system or not to your lik
 |`showHomebridgeEvents`|No|boolean|Include the homebridge events such as getting and setting characterics in the logs|`true`|
 |`showModuleEvents`|No|boolean|Include the module's events (eg. commands sent) in the logs|`true`|
 |`showModuleStatus`|No|boolean|Include the module's status in the logs|`false`|
-|`clearCache`|No|boolean|Clear all the plugin's cached accessories from homebridge to force full discovery of accessories on restart|`false`|
+|`clearAccessoryCache`|No|boolean|Clear all the plugin's cached accessories from homebridge to force re-creation of HomeKit accessories on restart<br/>This is equivalent to deleting the `cachedAccessories` file|`false`|
+|`forceAutoDiscovery`|No|boolean|Force auto-discovery of HVAC config on restart<br/>This is equivalent to deleting the `RinnaiTouchPlatform.json` file|`false`|
 |`mqtt`|No|object|See [MQTT.md](src/mqtt/MQTT.md) for details||
 |`pushover`|No|object|See "Pushover Notification Configuration" for details||
 
@@ -137,7 +138,8 @@ This is useful if you only use Manual Control of your HVAC (ie. no programme sch
         "seperateFanZoneSwitches": true,
         "showHomebridgeEvents": true,
         "showModuleEvents": true,
-        "clearCache": false
+        "clearAccessoryCache": false,
+        "forceAutoDiscovery": false
       }
     ],
 

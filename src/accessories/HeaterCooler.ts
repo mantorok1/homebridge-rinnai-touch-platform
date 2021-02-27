@@ -347,12 +347,11 @@ export class HeaterCooler extends ThermostatBase {
         }
         break;
       case this.platform.Characteristic.TargetHeaterCoolerState.AUTO:
-        await this.platform.service.setFanState(false);
-        await this.platform.service.setPowerState(true);
-        await this.platform.service.setControlMode(ControlModes.MANUAL);
-  
         this.platformAccessory.context.autoMode = true;
-        await this.autoModeHandler();
+        if (this.platform.service.getPowerState()) {
+          await this.platform.service.setControlMode(ControlModes.MANUAL);
+          await this.autoModeHandler();
+        }
     }
   }
 
@@ -369,14 +368,11 @@ export class HeaterCooler extends ThermostatBase {
       return false;
     }
     
-    if (!this.platform.service.getPowerState()) {
-      this.platform.log.warn('AUTO mode cancelled as the power is Off');
-      return false;
-    }
-    
-    if (this.platform.service.getControlMode() !== ControlModes.MANUAL) {
-      this.platform.log.warn('AUTO mode cancelled as the the controller is not in Manual operation');
-      return false;
+    if (this.platform.service.getPowerState()) {
+      if (this.platform.service.getControlMode() !== ControlModes.MANUAL) {
+        this.platform.log.warn('AUTO mode cancelled as the the controller is not in Manual operation');
+        return false;
+      }
     }
 
     if (this.getHeatingThresholdTemperature() >= this.getCoolingThresholdTemperature()) {

@@ -21,8 +21,6 @@ export abstract class AccessoryBase {
     this.setAccessoryInformation();
   }
 
-  abstract serviceName: string;
-
   abstract updateValues(): void
 
   setAccessoryInformation(): void {
@@ -41,6 +39,10 @@ export abstract class AccessoryBase {
 
     this.platform.service.session.on('status', () => {
       this.updateValues();
+    });
+
+    this.platformAccessory.on('identify', () => {
+      this.platform.log.warn('>>> Identify', this.platformAccessory.displayName);
     });
   }
 

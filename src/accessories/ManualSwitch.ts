@@ -12,19 +12,9 @@ export class ManualSwitch extends AccessoryBase {
     super(platform, platformAccessory);
 
     this.service = this.platformAccessory.getService(this.platform.Service.Switch) ??
-      this.platformAccessory.addService(this.platform.Service.Switch, this.serviceName);
+      this.platformAccessory.addService(this.platform.Service.Switch, platformAccessory.displayName);
 
     this.setEventHandlers();
-  }
-
-  get serviceName(): string {
-    let name = 'Manual';
-    if (this.platform.service.getHasMultiSetPoint()) {
-      name += ` ${this.platform.service.getZoneName(this.platformAccessory.context.zone)}`;
-    }
-    name += ` ${this.modeNames[this.platformAccessory.context.mode]}`;
-    
-    return name.trim();
   }
 
   setEventHandlers(): void {

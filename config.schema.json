@@ -2,8 +2,6 @@
   "pluginAlias": "RinnaiTouchPlatform",
   "pluginType": "platform",
   "singular": true,
-  "headerDisplay": "Rinnai Touch Platform Configuration Options",
-  "footerDisplay": "For more information see https://github.com/mantorok1/homebridge-rinnai-touch-platform#readme",
   "schema": {
     "type": "object",
     "properties": {

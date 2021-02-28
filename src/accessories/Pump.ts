@@ -11,13 +11,9 @@ export class Pump extends AccessoryBase {
     super(platform, platformAccessory);
 
     this.service = this.platformAccessory.getService(this.platform.Service.Valve) ??
-      this.platformAccessory.addService(this.platform.Service.Valve, this.serviceName);
+      this.platformAccessory.addService(this.platform.Service.Valve, platformAccessory.displayName);
 
     this.setEventHandlers();
-  }
-
-  get serviceName(): string {
-    return 'Evaporative Pump';
   }
 
   setEventHandlers(): void {

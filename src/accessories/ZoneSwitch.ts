@@ -11,15 +11,9 @@ export class ZoneSwitch extends AccessoryBase {
     super(platform, platformAccessory);
 
     this.service = this.platformAccessory.getService(this.platform.Service.Switch) ??
-      this.platformAccessory.addService(this.platform.Service.Switch, this.serviceName);
+      this.platformAccessory.addService(this.platform.Service.Switch, platformAccessory.displayName);
 
     this.setEventHandlers();
-  }
-
-  get serviceName(): string {
-    const name = this.platform.service.getZoneName(this.platformAccessory.context.zone) + ' ' +
-      this.modeNames[this.platformAccessory.context.mode];
-    return name.trim();
   }
 
   setEventHandlers(): void {

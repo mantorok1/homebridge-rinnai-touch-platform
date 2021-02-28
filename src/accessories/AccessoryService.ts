@@ -13,7 +13,13 @@ import { Pump } from './Pump';
 export class AccessoryService {
   private accessories: Map<string, AccessoryBase> = new Map();
   private deviceModes: string[] = [];
-  private deviceModesAll: string[] = ['A', 'H', 'C', 'E', 'F']
+  private modeNames = {
+    A: '',
+    H: 'Heat',
+    C: 'Cool',
+    E: 'Cool',
+    F: 'Fan',
+  }
 
   constructor(private readonly platform: RinnaiTouchPlatform) { }
 
@@ -60,7 +66,10 @@ export class AccessoryService {
 
     for(const zone of this.platform.service.AllZones) {
       if (zones.includes(zone)) {
-        this.addAccessory(Thermostat, Thermostat.name, zone);
+        const displayName: string = this.platform.service.getHasMultiSetPoint()
+          ? this.platform.service.getZoneName(zone)
+          : this.platform.settings.name;
+        this.addAccessory(Thermostat, Thermostat.name, displayName, zone);
       } else {
         this.removeAccessory(Thermostat.name, zone);
       }
@@ -85,7 +94,10 @@ export class AccessoryService {
 
     for(const zone of this.platform.service.AllZones) {
       if (zones.includes(zone)) {
-        this.addAccessory(HeaterCooler, HeaterCooler.name, zone);
+        const displayName: string = zone !== 'U'
+          ? this.platform.service.getZoneName(zone)
+          : this.platform.settings.name;
+        this.addAccessory(HeaterCooler, HeaterCooler.name, displayName, zone);
       } else {
         this.removeAccessory(HeaterCooler.name, zone);
       }
@@ -96,7 +108,7 @@ export class AccessoryService {
     this.platform.log.debug(this.constructor.name, 'discoverFan');
 
     if (this.platform.settings.showFan) {
-      this.addAccessory(Fan, Fan.name);
+      this.addAccessory(Fan, Fan.name, 'Circulation Fan');
     } else {
       this.removeAccessory(Fan.name);
     }
@@ -142,7 +154,8 @@ export class AccessoryService {
     for(const mode of Object.keys(modeZones)) {
       for(const zone of ['A', 'B', 'C', 'D']) {
         if (modeZones[mode].includes(zone)) {
-          this.addAccessory(ZoneSwitch, ZoneSwitch.name, zone, mode);
+          const displayName = this.platform.service.getZoneName(zone) + ' ' + this.modeNames[mode];
+          this.addAccessory(ZoneSwitch, ZoneSwitch.name, displayName.trim(), zone, mode);
         } else {
           this.removeAccessory(ZoneSwitch.name, zone, mode);
         }
@@ -166,7 +179,12 @@ export class AccessoryService {
     for(const mode of ['A', 'H', 'C']) {
       for(const zone of this.platform.service.AllZones) {
         if (zones.includes(zone) && this.deviceModes.includes(mode)) {
-          this.addAccessory(AdvanceSwitch, AdvanceSwitch.name, zone, mode);
+          let displayName = 'Advance Period';
+          if (this.platform.service.getHasMultiSetPoint()) {
+            displayName += ` ${this.platform.service.getZoneName(zone)}`;
+          }
+          displayName += ` ${this.modeNames[mode]}`;
+          this.addAccessory(AdvanceSwitch, AdvanceSwitch.name, displayName.trim(), zone, mode);
         } else {
           this.removeAccessory(AdvanceSwitch.name, zone, mode);
         }
@@ -190,7 +208,12 @@ export class AccessoryService {
     for(const mode of ['A', 'H', 'C', 'E']) {
       for(const zone of this.platform.service.AllZones) {
         if (zones.includes(zone) && this.deviceModes.includes(mode)) {
-          this.addAccessory(ManualSwitch, ManualSwitch.name, zone, mode);
+          let displayName = 'Manual';
+          if (this.platform.service.getHasMultiSetPoint()) {
+            displayName += ` ${this.platform.service.getZoneName(zone)}`;
+          }
+          displayName += ` ${this.modeNames[mode]}`;
+          this.addAccessory(ManualSwitch, ManualSwitch.name, displayName.trim(), zone, mode);
         } else {
           this.removeAccessory(ManualSwitch.name, zone, mode);
         }
@@ -202,7 +225,7 @@ export class AccessoryService {
     this.platform.log.debug(this.constructor.name, 'discoverPump', devices);
 
     if ('evap' in devices) {
-      this.addAccessory(Pump, Pump.name);
+      this.addAccessory(Pump, Pump.name, 'Evaporative Pump');
     } else {
       this.removeAccessory(Pump.name);
     }
@@ -210,9 +233,9 @@ export class AccessoryService {
 
   addAccessory<TAccessory extends AccessoryBase>(
     Accessory: new (platform: RinnaiTouchPlatform, accessory: PlatformAccessory) => TAccessory,
-    name: string, zone?: string, mode?: string,
+    name: string, displayName: string, zone?: string, mode?: string,
   ): void {
-    this.platform.log.debug(this.constructor.name, 'addAccessory', 'Accessory', name, zone, mode);
+    this.platform.log.debug(this.constructor.name, 'addAccessory', 'Accessory', name, displayName, zone, mode);
 
     const key: string = this.getKey(name, zone, mode);
 
@@ -220,7 +243,6 @@ export class AccessoryService {
       return;
     }
 
-    const displayName: string = name + (zone ? ` ${zone}` : '' ) + (mode ? ` ${mode}` : '');
     const uuid: string = this.platform.api.hap.uuid.generate(key);
     const platformAccessory: PlatformAccessory = new this.platform.api.platformAccessory(displayName, uuid);
     platformAccessory.context.type = name.toLowerCase();
@@ -233,7 +255,7 @@ export class AccessoryService {
     this.accessories.set(key, accessory);
 
     this.platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [platformAccessory]);
-    this.platform.log.info(`Add ${platformAccessory.displayName}`);
+    this.platform.log.info(`Add ${name}: ${platformAccessory.displayName}`);
   }
 
   removeAccessory(name: string, zone?: string, mode?: string): void {
@@ -251,7 +273,7 @@ export class AccessoryService {
     this.platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [platformAccessory]);
  
     this.accessories.delete(key);
-    this.platform.log.info(`Remove ${platformAccessory.displayName}`);
+    this.platform.log.info(`Remove ${name}: ${platformAccessory.displayName}`);
   }
 
   // Called from configureAccessory
@@ -273,25 +295,18 @@ export class AccessoryService {
     switch(platformAccessory.context.type) {
       case 'thermostat':
         return new Thermostat(this.platform, platformAccessory);
-        break;
       case 'heatercooler':
         return new HeaterCooler(this.platform, platformAccessory);
-        break;
       case 'fan':
         return new Fan(this.platform, platformAccessory);
-        break;
       case 'zoneswitch':
         return new ZoneSwitch(this.platform, platformAccessory);
-        break;
       case 'advanceswitch':
         return new AdvanceSwitch(this.platform, platformAccessory);
-        break;
       case 'manualswitch':
         return new ManualSwitch(this.platform, platformAccessory);
-        break;
       case 'pump':
         return new Pump(this.platform, platformAccessory);
-        break;
     }
 
     return;

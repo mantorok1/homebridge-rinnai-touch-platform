@@ -17,18 +17,11 @@ export class HeaterCooler extends ThermostatBase {
       this.service = service;
       this.initialiseAutoMode();
     } else {
-      this.service = this.platformAccessory.addService(this.platform.Service.HeaterCooler, this.serviceName);
+      this.service = this.platformAccessory.addService(this.platform.Service.HeaterCooler, platformAccessory.displayName);
       this.initialiseService();
     }
 
     this.setEventHandlers();
-  }
-
-  get serviceName(): string {
-    const name: string = this.platformAccessory.context.zone !== 'U'
-      ? this.platform.service.getZoneName(this.platformAccessory.context.zone)
-      : this.platform.settings.name;
-    return name;
   }
 
   private autoModeEnabled(): boolean {

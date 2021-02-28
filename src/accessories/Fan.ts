@@ -12,13 +12,9 @@ export class Fan extends AccessoryBase {
     super(platform, platformAccessory);
 
     this.service = this.platformAccessory.getService(this.platform.Service.Fan) ??
-      this.platformAccessory.addService(this.platform.Service.Fan, this.serviceName);
+      this.platformAccessory.addService(this.platform.Service.Fan, platformAccessory.displayName);
 
     this.setEventHandlers();
-  }
-
-  get serviceName(): string {
-    return 'Circulation Fan';
   }
 
   setEventHandlers(): void {

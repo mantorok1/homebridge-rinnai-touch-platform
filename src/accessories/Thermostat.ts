@@ -17,18 +17,11 @@ export class Thermostat extends ThermostatBase {
       this.service = service;
       this.initialiseAutoMode();
     } else {
-      this.service = this.platformAccessory.addService(this.platform.Service.Thermostat, this.serviceName);
+      this.service = this.platformAccessory.addService(this.platform.Service.Thermostat, platformAccessory.displayName);
       this.initialiseService();
     }
     
     this.setEventHandlers();
-  }
-
-  get serviceName(): string {
-    const name: string = this.platform.service.getHasMultiSetPoint()
-      ? this.platform.service.getZoneName(this.platformAccessory.context.zone)
-      : this.platform.settings.name;
-    return name;
   }
 
   private autoModeEnabled(): boolean {

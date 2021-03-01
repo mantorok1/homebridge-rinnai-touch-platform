@@ -113,12 +113,15 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
 
     try {
       if (this.settings.forceAutoDiscovery) {
-        this.log.info('Forcing Auto-Discovery of config');
+        this.log.info('Forcing Auto-Discovery');
       } else {
         const content = await fs.promises.readFile(cacheFile, { encoding: 'utf8' });
         this.log.info(`Read config from cache [${cacheFile}]`);
         devices = JSON.parse(content);
       }
+    } catch {
+      this.log.info('Performing Auto-Discovery');
+      devices = undefined;
     } finally {
       if (devices === undefined) {
         devices = await this.findDevices();

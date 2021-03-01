@@ -42,7 +42,7 @@ export abstract class AccessoryBase {
     });
 
     this.platformAccessory.on('identify', () => {
-      this.platform.log.warn('>>> Identify', this.platformAccessory.displayName);
+      this.platform.log.info(`Identified: ${this.platformAccessory.displayName}`);
     });
   }
 

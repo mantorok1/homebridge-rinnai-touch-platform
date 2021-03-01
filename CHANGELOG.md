@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.3.3 (2021-03-01)
+
+* [FIX] Error occurs when cache file doesn't exist
+
 ## 3.3.2 (2021-02-28)
 
 * [FIX] HeaterCooler intermittently turning on and setting to AUTO mode

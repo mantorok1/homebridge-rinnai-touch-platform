@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## NEXT
+
+* [FIX] Pushover notification may cause plugin to crash when internet connection is down
+
 ## 3.3.3 (2021-03-01)
 
 * [FIX] Error occurs when cache file doesn't exist

@@ -227,7 +227,7 @@ export class PushoverService {
 
         this.pushover.send(pushoverMessage, (error) => {
           if (error) {
-            throw error;
+            this.platform.log.warn('Pushover notification(s) failed:', error.message);
           }
         });
       }

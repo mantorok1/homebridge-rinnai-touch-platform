@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## NEXT
+## 3.3.4 (2021-03-13)
 
 * [FIX] Pushover notification may cause plugin to crash when internet connection is down
 

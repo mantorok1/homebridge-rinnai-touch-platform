@@ -28,6 +28,8 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   public readonly mqttService!: MqttService;
   public readonly pushoverService!: PushoverService;
   public readonly temperatureService!: TemperatureService;
+  private _serviceInitialised = false;
+  private _serviceInitialising = false;
 
   constructor(
     public readonly log: Logger,
@@ -63,7 +65,7 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  configureAccessory(platformAccessory: PlatformAccessory) {
+  async configureAccessory(platformAccessory: PlatformAccessory) {
     this.log.debug(this.constructor.name, 'configureAccessory');
 
     if (this.settings.clearCache) {
@@ -71,7 +73,30 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
       return;
     }
 
+    await this.initService();
+
     this.accessoryService.configure(platformAccessory);
+  }
+
+  private async initService(): Promise<void> {
+    this.log.debug(this.constructor.name, 'initService');
+
+    return new Promise((resolve) => {
+      if (this._serviceInitialised) {
+        resolve();
+      }
+
+      this.service.session.once('status', () => {
+        this._serviceInitialised = true;
+        this._serviceInitialising = false;
+        resolve();
+      });
+
+      if (!this._serviceInitialising) {
+        this._serviceInitialising = true;
+        this.service.init();
+      }
+    });
   }
 
   async discoverDevices(): Promise<void> {
@@ -85,7 +110,7 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
         this.deletedAccessories = [];
       }
 
-      await this.service.init();
+      await this.initService();
 
       // Display discovered devices
       const devices = await this.getDevices();
@@ -109,7 +134,8 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
     this.log.debug(this.constructor.name, 'getDevices');
 
     let devices: devices | undefined;
-    const cacheFile = path.join(this.api.user.storagePath(), 'RinnaiTouchPlatform.json');
+    const cacheFolder = path.join(this.api.user.storagePath(), 'RinnaiTouchPlatform');
+    const cacheFile = path.join(cacheFolder, `${this.settings.name}.json`);
 
     try {
       if (this.settings.forceAutoDiscovery) {
@@ -128,6 +154,7 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
         try {
           this.log.info(`Writing config to cache [${cacheFile}]`);
           const content = JSON.stringify(devices);
+          await fs.promises.mkdir(cacheFolder, {recursive: true});
           await fs.promises.writeFile(cacheFile, content, { encoding: 'utf8'});
         } catch(ex) {
           this.log.warn(`Writing config failed [${ex.message}]`);

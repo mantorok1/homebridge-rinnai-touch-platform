@@ -142,9 +142,9 @@ export class Thermostat extends ThermostatBase {
       }
       if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
         this.platformAccessory.context.heatingThresholdTemperature = setSetPointTemperature;
-        this.platformAccessory.context.coolingThresholdTemperature = setSetPointTemperature + 6.0;
+        this.platformAccessory.context.coolingThresholdTemperature = Math.min(setSetPointTemperature + 6.0, 30);
       } else {
-        this.platformAccessory.context.heatingThresholdTemperature = setSetPointTemperature - 6.0;
+        this.platformAccessory.context.heatingThresholdTemperature = Math.max(setSetPointTemperature - 6.0, 8);
         this.platformAccessory.context.coolingThresholdTemperature = setSetPointTemperature;
       }
     }

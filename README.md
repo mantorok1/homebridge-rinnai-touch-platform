@@ -172,6 +172,39 @@ This plugin can be configured to send Push notifications to your phone when cert
       "timeIncorrect": false
     },
 
+## Multiple Modules
+
+The plugin only supports connection to a single WiFi module, however, it is possible to have multiple instances of the plugin running. Each instance can then connect to a particular module. There are a couple of ways this can be achieved:
+* Multiple instances of Homebridge running, each with the plugin installed
+* Multiple [Child Bridges](https://github.com/homebridge/homebridge/wiki/Child-Bridges) running the plugin. Requires Homebirdge version 1.3.0 or above.
+
+The plugin is not able to use the network auto discovery when there is more than 1 module. To workaround this you'll need to specify the IP address of each module in the config. This means you'll need to ensure the modules have static IP addresses.
+
+For the plugin to work properly with Child Bridges you'll also need to specify a unique `name`, `_bridge.username` and `_bridge.port` for each. Here's an example config:
+
+```
+    {
+      "name": "Module1",
+      "address": "192.168.1.60",
+      "_bridge": {
+        "username": "A1:B2:C3:D4:E5:F0",
+        "port": 42150
+      },
+      "platform": "RinnaiTouchPlatform"
+    },
+    {
+      "name": "Module2",
+      "address": "192.168.1.61",
+      "_bridge": {
+        "username": "A1:B2:C3:D4:E5:F1",
+        "port": 42151
+      },
+      "platform": "RinnaiTouchPlatform"
+    }
+```
+
+Be aware that the Homebridge Config UI doesn't yet support editing the config of all instances via the `SETTINGS` option, however, it does via the `JSON Config` editor.
+
 ## Version History
 
 See [Change Log](CHANGELOG.md).

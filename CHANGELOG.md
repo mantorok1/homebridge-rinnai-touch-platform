@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## NEXT
+
+* [FIX] Prevent network auto discovery of module when IP address specified in settings
+* [FIX] Wait for module connection before configuring cached accessories
+* [FIX] Homebridge warning when heating/cooling threshold temperature exceed limits
+* Improve support for running multiple instances of the plugin ([#5](https://github.com/mantorok1/homebridge-rinnai-touch-platform/issues/5))
+* Add build on node 16.x
+
 ## 3.3.4 (2021-03-13)
 
 * [FIX] Pushover notification may cause plugin to crash when internet connection is down
@@ -228,7 +236,7 @@ All notable changes to this project will be documented in this file.
 
 ## 1.0.1 (2020-03-15)
 
-* [FIX] Current State and Zones not working for mutli-controller setups
+* [FIX] Current State and Zones not working for multi-controller setups
 
 ## 1.0.0 (2020-03-15)
 

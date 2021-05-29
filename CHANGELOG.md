@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.3.6 (2021-05-30)
+
+* Update dependencies, one of which had a high severity vulnerability
+
 ## 3.3.5 (2021-05-02)
 
 * [FIX] Prevent network auto discovery of module when IP address specified in settings

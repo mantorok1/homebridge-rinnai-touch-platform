@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 * Add "Boot Module" option
 * Allow setting temperature to zero
+* Update dependencies, one of which had a high severity vulnerability
 
 ## 3.3.6 (2021-05-30)
 

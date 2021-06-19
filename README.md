@@ -86,6 +86,8 @@ If you find the default config is not correct for your system or not to your lik
 |`showModuleStatus`|No|boolean|Include the module's status in the logs|`false`|
 |`clearCache`|No|boolean|Clear all the plugin's cached accessories from homebridge to force re-creation of HomeKit accessories on restart<br/>This is equivalent to deleting the `cachedAccessories` file|`false`|
 |`forceAutoDiscovery`|No|boolean|Force auto-discovery of HVAC config on restart<br/>This is equivalent to deleting the `RinnaiTouchPlatform.json` file|`false`|
+|`bootTime`|No|string|Time to boot the module in hh:mm 24 hour format (eg. 02:00 for 2am or 23:30 for 11:30pm)<br/>NOTE: leave blank to prevent booting module||
+|`bootPassword`|No|string|The module's Default Security Key (WPA). This can be found on the QR Code sticker that came with the module or on the Touch app's "Current Connection Information" screen<br/>NOTE: This is only required for booting the module||
 |`mqtt`|No|object|See [MQTT.md](src/mqtt/MQTT.md) for details||
 |`pushover`|No|object|See "Pushover Notification Configuration" for details||
 
@@ -139,7 +141,9 @@ This is useful if you only use Manual Control of your HVAC (ie. no programme sch
         "showHomebridgeEvents": true,
         "showModuleEvents": true,
         "clearCache": false,
-        "forceAutoDiscovery": false
+        "forceAutoDiscovery": false,
+        "bootTime": "02:00",
+        "bootPassword": "AA00AAAA00"
       }
     ],
 

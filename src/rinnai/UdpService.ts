@@ -34,7 +34,7 @@ export class UdpService {
           clearTimeout(timer);
           socket.removeAllListeners();
           socket.close();
-          const port = message[32] * 256 + message[33];
+          const port = message.readUInt16BE(32);
           this.log.info(`Found: Rinnai Touch module [${remote.address}:${port}]`);
           resolve({
             address: remote.address,

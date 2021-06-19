@@ -46,6 +46,8 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
         showModuleEvents: this.settings.showModuleEvents,
         showModuleStatus: this.settings.showModuleStatus,
         invertComfortLevel: this.settings.invertComfortLevel,
+        bootTime: this.settings.bootTime,
+        bootPassword: this.settings.bootPassword,
       });
       this.accessoryService = new AccessoryService(this);
       this.mqttService = new MqttService(this);

@@ -2,6 +2,7 @@ import { Status } from './Status';
 
 export enum Commands {
   Ping,
+  Boot,
   OperatingMode,
   OperatingState,
   SetDayAndTime,
@@ -30,6 +31,7 @@ export class Command {
     // Validate
     switch(this.command) {
       case Commands.Ping:
+      case Commands.Boot:
         return;
       case Commands.SetDayAndTime:
         if (this.states === undefined || this.states.length !== 2) {
@@ -47,8 +49,12 @@ export class Command {
     return this.command === Commands.Ping;
   }
 
+  get isBoot(): boolean {
+    return this.command === Commands.Boot;
+  }
+
   toString(): string {
-    if (this.isPing) {
+    if (this.isPing || this.isBoot) {
       return Commands[this.command];
     }
     return `Set ${Commands[this.command]} to '${this.states}'` +
@@ -56,7 +62,7 @@ export class Command {
   }
 
   toJson(status: Status): Record<string, Record<string, Record<string, string>>> | undefined {
-    if (this.isPing) {
+    if (this.isPing || this.isBoot) {
       return;
     }
 

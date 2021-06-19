@@ -125,6 +125,20 @@
         "default": false,
         "required": false
       },
+      "bootTime": {
+        "title": "Module Boot Time (24 hour format)",
+        "description": "(leave blank to prevent boot)",
+        "type": "string",
+        "required": false,
+        "placeholder": "hh:mm",
+        "pattern": "^(2[0-3]|[0-1][0-9]):[0-5][0-9]$"
+      },
+      "bootPassword": {
+        "title": "Module's Default Security Key (WPA)",
+        "description": "(required for booting module)",
+        "type": "string",
+        "required": false
+      },
       "mqtt": {
         "type": "object",
         "properties": {
@@ -437,7 +451,12 @@
         "showModuleEvents",
         "showModuleStatus",
         "clearCache",
-        "forceAutoDiscovery"
+        "forceAutoDiscovery",
+        {
+          "type": "flex",
+          "flex-flow": "row wrap",
+          "items": [ "bootTime", "bootPassword" ] 
+        }
       ]
     }
   ]

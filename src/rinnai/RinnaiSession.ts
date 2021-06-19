@@ -1,4 +1,5 @@
 import events = require('events');
+import schedule = require('node-schedule');
 import cq = require('concurrent-queue');
 
 import { TcpService, ModuleAddress } from './TcpService';
@@ -12,9 +13,12 @@ export class RinnaiSession extends events.EventEmitter {
   private address?: ModuleAddress;
   private readonly showModuleEvents: boolean;
   private readonly showModuleStatus: boolean;
+  private readonly bootTime?: {hour: number, minute: number};
+  private readonly bootPassword?: string;
 
   private tcp: TcpService;
-  private pingIntervalId?: NodeJS.Timeout;
+  private jobPing?: schedule.Job;
+  private jobBoot?: schedule.Job
   private readonly queue: cq;
   private _message?: Message;
   private _status: Status = new Status;
@@ -26,6 +30,8 @@ export class RinnaiSession extends events.EventEmitter {
     port?: number,
     showModuleEvents?: boolean,
     showModuleStatus?: boolean,
+    bootTime?: string,
+    bootPassword?: string
   } = {}) {
     super();
     this.setMaxListeners(40);
@@ -39,6 +45,14 @@ export class RinnaiSession extends events.EventEmitter {
     }
     this.showModuleEvents = options.showModuleEvents ?? true;
     this.showModuleStatus = options.showModuleStatus ?? false;
+
+    if ((options.bootTime ?? '').length === 5 && (options.bootPassword ?? '').length > 0) {
+      this.bootTime = {
+        hour: Number(options.bootTime!.substring(0, 2)),
+        minute: Number(options.bootTime!.substring(3, 5)),
+      };
+      this.bootPassword = options.bootPassword!;
+    }
 
     this.tcp = new TcpService({log: this.log, address: this.address});
 
@@ -79,10 +93,17 @@ export class RinnaiSession extends events.EventEmitter {
     // error handler
     this.tcp.on('connection_error', this.handleConnectionError.bind(this));
 
-    // Ping module
-    this.pingIntervalId = setInterval(async () => {
+    // Ping Job
+    this.jobPing = schedule.scheduleJob('*/1 * * * *', async () => {
       await this.sendCommand(new Command({command: Commands.Ping}));
-    }, 60000);
+    });
+
+    // Boot Job
+    if (this.bootTime !== undefined) {
+      this.jobBoot = schedule.scheduleJob(`${this.bootTime.minute} ${this.bootTime.hour} * * *`, async () => {
+        await this.sendCommand(new Command({command: Commands.Boot}));
+      });
+    }
 
     // Wait for first status
     await new Promise((resolve) => {
@@ -94,9 +115,8 @@ export class RinnaiSession extends events.EventEmitter {
     this.log.debug(this.constructor.name, 'stop');
 
     try {
-      if (this.pingIntervalId !== undefined) {
-        clearInterval(this.pingIntervalId);
-      }
+      this.jobPing?.cancel();
+      this.jobBoot?.cancel();
 
       this.tcp.removeAllListeners();
 
@@ -129,6 +149,13 @@ export class RinnaiSession extends events.EventEmitter {
     this.log.debug(this.constructor.name, 'process', command.toString());
 
     try {
+      if (command.isBoot) {
+        const payload = `CS<DVPW>${this.bootPassword}<BOOT>\r`;
+        this.log.info(`Sending: ${payload}`);
+        await this.tcp.write(payload);
+        return;
+      }
+
       let payload = 'N' + this.getNextSequence();
       const states = command.toJson(this.status);
       if (!command.isPing) {

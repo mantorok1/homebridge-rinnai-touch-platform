@@ -144,6 +144,14 @@ export class Settings {
     return <boolean | undefined>this.config.forceAutoDiscovery ?? false;
   }
 
+  get bootTime(): string | undefined {
+    return this.config.bootTime;
+  }
+
+  get bootPassword(): string | undefined {
+    return this.config.bootPassword;
+  }
+
   get mqtt(): MqttSettings | undefined {
     return this._mqtt;
   }

@@ -38,6 +38,8 @@ export class RinnaiService extends events.EventEmitter {
     showModuleEvents?: boolean,
     showModuleStatus?: boolean,
     invertComfortLevel?: boolean,
+    bootTime?: string,
+    bootPassword?: string
   } = {}) {
     super();
     this.log = options.log ?? console;
@@ -48,6 +50,8 @@ export class RinnaiService extends events.EventEmitter {
       port: options.port,
       showModuleEvents: options.showModuleEvents,
       showModuleStatus: options.showModuleStatus,
+      bootTime: options.bootTime,
+      bootPassword: options.bootPassword,
     });
   }
 

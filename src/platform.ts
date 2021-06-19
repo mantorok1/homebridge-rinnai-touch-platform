@@ -148,9 +148,17 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
         devices = JSON.parse(content);
       }
     } catch {
-      this.log.info('Performing Auto-Discovery');
+      this.log.info('Performing Auto-Discovery as cache file not found');
       devices = undefined;
     } finally {
+      if (devices !== undefined) {
+        if ((this.service.getHasMultiSetPoint() && devices.controllers.includes('U')) ||
+          (!this.service.getHasMultiSetPoint() && !devices.controllers.includes('U'))) {
+          this.log.info('Performing Auto-Discovery as cache file is invalid');
+          devices = undefined;
+        }
+      }
+
       if (devices === undefined) {
         devices = await this.findDevices();
         try {

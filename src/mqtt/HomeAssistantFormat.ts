@@ -175,8 +175,8 @@ export class HomeAssistantFormat implements IMqttFormat {
       this.platform.log.warn(`MQTT: Invalid temperature specified: ${temp}`);
       return false;
     }
-    if (value < 8 || value > 30) {
-      this.platform.log.warn(`MQTT: Temperature ${temp} not between 8 and 30`);
+    if (value < 0 || value > 30) {
+      this.platform.log.warn(`MQTT: Temperature ${temp} not between 0 and 30`);
       return false;
     }
     return true;

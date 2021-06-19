@@ -349,7 +349,7 @@ export class RinnaiService extends events.EventEmitter {
       value = Math.round(value);
       value = this.session.status.modeEvap
         ? this.toComfortLevel(value)
-        : value;
+        : this.toSetPointTemperature(value);
       const state = value.toString().padStart(2, '0');
       const command = new Command({command: Commands.SetPointTemperature, zone: zone, state: state});
       await this.session.sendCommand(command);
@@ -438,6 +438,7 @@ export class RinnaiService extends events.EventEmitter {
   //
 
   private toComfortLevel(temperature: number): number {
+    temperature = Math.min(Math.max(temperature, 8), 30);
     let ratio = (temperature - 8) / 22;
     if (this.invertComfortLevel) {
       ratio = 1 - ratio;
@@ -451,5 +452,13 @@ export class RinnaiService extends events.EventEmitter {
       ratio = 1 - ratio;
     }
     return Math.round(ratio * 22 + 8);
+  }
+
+  private toSetPointTemperature(temperature: number): number {
+    temperature = Math.min(temperature, 30);
+    if (temperature < 8) {
+      temperature = 0;
+    }
+    return temperature;
   }
 }

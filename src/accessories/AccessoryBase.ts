@@ -46,11 +46,11 @@ export abstract class AccessoryBase {
     });
   }
 
-  async getCharacteristicValue(
+  getCharacteristicValue(
     getValue: () => CharacteristicValue,
     characteristic: string,
     callback: CharacteristicGetCallback,
-  ): Promise<void> {
+  ): void {
     this.platform.log.debug('AccessoryBase', 'getCharacteristicValue', 'getValue', characteristic, 'callback');
 
     if (this.platform.settings.showHomebridgeEvents) {

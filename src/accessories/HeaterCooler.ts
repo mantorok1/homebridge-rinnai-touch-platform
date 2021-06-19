@@ -16,6 +16,7 @@ export class HeaterCooler extends ThermostatBase {
     if (service) {
       this.service = service;
       this.initialiseAutoMode();
+      this.initialiseThresholdTemperatures();
     } else {
       this.service = this.platformAccessory.addService(this.platform.Service.HeaterCooler, platformAccessory.displayName);
       this.initialiseService();
@@ -95,21 +96,7 @@ export class HeaterCooler extends ThermostatBase {
         validValues: validStates,
       });
 
-    this.service
-      .getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
-      .setProps({
-        minValue: 8,
-        maxValue: 30,
-        minStep: 1,
-      });
-
-    this.service
-      .getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
-      .setProps({
-        minValue: 8,
-        maxValue: 30,
-        minStep: 1,
-      });
+    this.initialiseThresholdTemperatures();
 
     if (this.platformAccessory.context.autoMode === undefined) {
       this.platformAccessory.context.autoMode = false;
@@ -128,6 +115,26 @@ export class HeaterCooler extends ThermostatBase {
         this.platformAccessory.context.coolingThresholdTemperature = setSetPointTemperature;
       }
     }
+  }
+
+  initialiseThresholdTemperatures(): void {
+    this.platform.log.debug(this.constructor.name, 'initialiseThresholdTemperatures');
+
+    this.service
+      .getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
+      .setProps({
+        minValue: 0,
+        maxValue: 30,
+        minStep: 1,
+      });
+
+    this.service
+      .getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+      .setProps({
+        minValue: 0,
+        maxValue: 30,
+        minStep: 1,
+      });
   }
 
   getValidCurrentHeaterCoolerStates(): number[] {

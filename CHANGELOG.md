@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## NEXT
 
-* Add "Boot Module" option 
+* Add "Boot Module" option
+* Allow setting temperature to zero
 
 ## 3.3.6 (2021-05-30)
 

@@ -86,7 +86,7 @@ export class ManualSwitch extends AccessoryBase {
     await this.platform.service.setControlMode(state, this.platformAccessory.context.zone);
   }
 
-  updateValues() {
+  updateValues(): void {
     this.platform.log.debug(this.constructor.name, 'updateValues');
 
     this.service

@@ -32,7 +32,11 @@ This plugin will add one or more accessories to the Home app depending on the st
 |Manual Switch|Shows if the Manual mode is On or Off and allows you to change it|
 |Pump|Displays the current state of the pump if you have Evaporative Cooling. Allows you to turn it On or Off<br/>NOTE: The pump can only be used when the Thermostat is in `COOL` mode.|
 
-### Notes about AUTO mode
+### Multi Temperature Set Point (MTSP)
+
+For MTSP when in Heat and Cool modes the zones are turned off by setting the temperature to less than 8 degrees. The zone switches will not work except when in fan mode.
+
+### AUTO mode
 
 This is an experimental feature so may be a little "buggy".
 
@@ -217,7 +221,9 @@ See [Change Log](CHANGELOG.md).
 * The Rinnai Touch module appears to only allow a single client to connect to it at one time via TCP/IP. As the plugin only supports a TCP/IP connection to the module no other connections from other clients (such as the TouchApp by Rinnai) can be active at the time the plugin starts. Once a connection is established the plugin will keep it open to prevent other clients connecting to it via TCP/IP. NOTE: Once the plugin has started you can then use the TouchApp as it will connect to the module via the cloud.
 * The module will disconnect if it has not received any requests after 5 minutes. To prevent this the plugin will send a blank command every minute.
 * The module is also very temperamental about the TCP/IP connection. If it is not not closed properly or re-opened too quickly then a "Connection Refused" error may occur which prevents the plugin from connecting to the module. This may happen if Homebridge is not shutdown gracefully (eg. a crash). If it does happen try restarting Homebridge, the Rinnai Touch module or your Access Point/Router. If you multiple Access Points try restarting all of them.
+* The module may start disconnecting and reconnecting after a number of days of use. Normally the module will automatically reboot itself on a daily basis but the plugin's continuous connection prevents this so I think it becomes unstable after being connected for long periods of time. To (hopefully) prevent this you can force the module to reboot at a specified time in the plugin's settings (see `bootTime` and `bootPassword`).
 * Multi controller and Evaporative cooling configurations were not able to be tested so may not function properly.
 * Due to the lag between sending a command to the module and it correctly reflecting that command in it's status there may be a short delay of a few seconds before the Home app shows the correct values. eg. When switching from `HEAT` to `COOL` mode some details such as the desired temperature will take a few seconds before the current value is shown.
 * If the WiFi module does not supply a current temperature then the temperature will display as zero in the Thermostat/Heater Cooler accessory. I would have prefered it showed as blank but couldn't find a way to do it. This appears to be a limitation of the service within Homebridge.
 * The 'Heater Cooler' accessory is not currently supported by Home Assistant. See https://github.com/home-assistant/core/issues/30384
+

@@ -121,6 +121,10 @@ export class PushoverService {
   private handleConnection(): void {
     this.platform.log.debug(this.constructor.name, 'handleConnection');
 
+    if (this.isBooting()) {
+      return;
+    }
+
     if (!this.connectionError) {
       return;
     }
@@ -141,6 +145,10 @@ export class PushoverService {
   private handleFault(fault: Fault): void {
     this.platform.log.debug(this.constructor.name, 'handleFault', fault.toString());
 
+    if (this.isBooting()) {
+      return;
+    }
+
     if (!this.faultDetected) {
       return;
     }
@@ -157,6 +165,10 @@ export class PushoverService {
 
   private handleStatus(status: Status): void {
     this.platform.log.debug(this.constructor.name, 'handleStatus', status.toString());
+
+    if (this.isBooting()) {
+      return;
+    }
 
     if (!this.dayIncorrect && !this.timeIncorrect) {
       return;
@@ -208,6 +220,22 @@ export class PushoverService {
         }
       }
     }
+  }
+
+  private isBooting(): boolean {
+    const bootTime = this.platform.settings.bootTime;
+    if (bootTime === undefined) {
+      return false;
+    }
+
+    const [bootHour, bootMinute] = bootTime.split(':').map(Number);
+    const now = new Date();
+
+    if (now.getHours() === bootHour && now.getMinutes() === bootMinute) {
+      return true;
+    }
+
+    return false;
   }
 
   private sendMessage(message: string): void {

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## NEXT
+
+* [FIX] Pushover notifications occur when module rebooting
+
 ## 3.3.7 (2021-06-19)
 
 * Add "Boot Module" option

@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## NEXT
+## 3.3.8 (2021-07-11)
 
 * [FIX] Pushover notifications occur when module rebooting
 

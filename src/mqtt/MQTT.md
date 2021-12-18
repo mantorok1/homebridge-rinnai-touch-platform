@@ -14,7 +14,8 @@ The following formats are supported:
 |-|-|-|
 |`hvac/action/get`|Gets current state of HVAC. Values can be "off", "idle", "heating", "cooling", "fan"|Yes|
 |`hvac/current_temperature/get`|Gets current temperature|Yes|
-|`hvac/fan_mode/get`<br/>`hvac/fan_mode/set`|Gets or set fan speed. Values can be "low", "medium", "high"|No|
+|`hvac/fan_mode/get`<br/>`hvac/fan_mode/set`|Gets or sets fan speed. Values can be "low", "medium", "high"|No|
+|`hvac/fan_speed/get`<br/>`hvac/fan_speed/set`|Gets or sets fan speed. Values can be between 1 and 16 inclusive (offers finer control compared to `fan_mode`)|No|
 |`hvac/mode/get`<br/>`hvac/mode/set`|Gets or sets mode of HVAC. Values can be “off”, “cool”, “heat”, “fan_only”|No|
 |`hvac/temperature/get`<br/>`hvac/temperature/set`|Gets or sets target temperature. Values are between 8 and 30 inclusive|Yes|
 |`switch/zone/{zone}/get`<br/>`switch/zone/{zone}/set`|Gets or sets the zone state. Values can be "on" or "off". `{zone}` can be a, b, c or d|No|

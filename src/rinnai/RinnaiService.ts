@@ -71,7 +71,9 @@ export class RinnaiService extends events.EventEmitter {
 
       this.session.on('status', this.handleStatus.bind(this));
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
       throw error;
     }
   }
@@ -249,7 +251,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.OperatingMode, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -261,7 +265,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.OperatingState, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -278,7 +284,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.SetDayAndTime, states: states});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -290,7 +298,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.SaveDayAndTime, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -307,7 +317,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.PowerState, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -326,7 +338,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.FanState, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -338,7 +352,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.FanSpeed, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -354,7 +370,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.SetPointTemperature, zone: zone, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -367,7 +385,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.UserEnabled, zone: zone, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -379,7 +399,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.ControlMode, zone: zone, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -391,7 +413,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.ScheduleOverride, zone: zone, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -403,7 +427,9 @@ export class RinnaiService extends events.EventEmitter {
       const command = new Command({command: Commands.ScheduleOverride, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 

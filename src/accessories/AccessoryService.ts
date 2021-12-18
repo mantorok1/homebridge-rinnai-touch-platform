@@ -52,7 +52,9 @@ export class AccessoryService {
       this.discoverManualSwitches(devices);
       this.discoverPump(devices);
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 

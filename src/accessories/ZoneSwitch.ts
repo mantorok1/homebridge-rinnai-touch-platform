@@ -1,4 +1,4 @@
-import { PlatformAccessory } from 'homebridge';
+import { CharacteristicValue, PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { OperatingModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
@@ -23,11 +23,11 @@ export class ZoneSwitch extends AccessoryBase {
 
     this.service
       .getCharacteristic(this.platform.Characteristic.On)
-      .on('get', this.getCharacteristicValue.bind(this, this.getZoneSwitchOn.bind(this), 'On'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setZoneSwitchOn.bind(this), 'On'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getZoneSwitchOn.bind(this), 'On'))
+      .onSet(this.setCharacteristicValue.bind(this, this.setZoneSwitchOn.bind(this), 'On'));
   }
 
-  getZoneSwitchOn(): boolean {
+  getZoneSwitchOn(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getZoneSwitchOn');
 
     if (this.platformAccessory.context.mode !== 'F') {
@@ -60,7 +60,7 @@ export class ZoneSwitch extends AccessoryBase {
     }
   }
 
-  async setZoneSwitchOn(value: boolean): Promise<void> {
+  async setZoneSwitchOn(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setZoneSwitchOn', value);
 
     if (value) {
@@ -103,7 +103,7 @@ export class ZoneSwitch extends AccessoryBase {
       }
     }
 
-    await this.platform.service.setUserEnabled(value, this.platformAccessory.context.zone);
+    await this.platform.service.setUserEnabled(value as boolean, this.platformAccessory.context.zone);
   }
 
   updateValues(): void {

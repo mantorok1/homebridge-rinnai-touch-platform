@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.0 (2021-12-18)
+
+* Use newer promise-based characteristic getters and setters (onGet & onSet). Requires Homebridge version 1.3.0 or above.
+* Add 1 second debounce to setting fan speed to prevent flooding module with commands
+* Add new MQTT topics for finer control of fan speed (`hvac/fan_speed/get` & `hvac/fan_speed/set`) ([#8](https://github.com/mantorok1/homebridge-rinnai-touch-platform/issues/8))
+* [FIX] ESLint warnings in error handlers
+* Update dependencies, some of which had moderate severity vulnerabilities
+
 ## 3.3.8 (2021-07-11)
 
 * [FIX] Pushover notifications occur when module rebooting

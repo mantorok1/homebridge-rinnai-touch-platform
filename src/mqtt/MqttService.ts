@@ -88,7 +88,9 @@ export class MqttService {
         }, <number>this.settings.publishFrequency * 1000);
       }
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
@@ -107,7 +109,9 @@ export class MqttService {
         this.client = await mqtt.connectAsync(url, options);
         connected = true;
       } catch(error) {
-        this.platform.log.warn(`Failed to connect to MQTT broker. Error: ${error.message}`);
+        if (error instanceof Error) {
+          this.platform.log.warn(`Failed to connect to MQTT broker. Error: ${error.message}`);
+        }
         this.platform.log.warn('Will try again in 1 minute');
         await this.delay(60000);
       }

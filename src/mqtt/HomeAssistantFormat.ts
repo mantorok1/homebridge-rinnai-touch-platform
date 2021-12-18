@@ -24,6 +24,7 @@ export class HomeAssistantFormat implements IMqttFormat {
 
     this.subTopics
       .set(`${this.prefix}hvac/fan_mode/set`, this.setHvacFanMode.bind(this))
+      .set(`${this.prefix}hvac/fan_speed/set`, this.setHvacFanSpeed.bind(this))
       .set(`${this.prefix}hvac/mode/set`, this.setHvacMode.bind(this))
       .set(`${this.prefix}hvac/temperature/set`, this.setHvacTemperature.bind(this))
       .set(`${this.prefix}switch/zone/a/set`, this.setSwitchZone.bind(this))
@@ -64,12 +65,14 @@ export class HomeAssistantFormat implements IMqttFormat {
         setValue(topic, payload);
       }
     } catch(error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
   private async setHvacFanMode(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setFanMode', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setHvacFanMode', topic, payload);
 
     try {
       if (!this.platform.service.getFanState()) {
@@ -97,12 +100,42 @@ export class HomeAssistantFormat implements IMqttFormat {
   
       await this.platform.service.setFanSpeed(fanSpeed);
     } catch(error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
+    }
+  }
+
+  private async setHvacFanSpeed(topic: string, payload: string): Promise<void> {
+    this.platform.log.debug(this.constructor.name, 'setHvacFanSpeed', topic, payload);
+
+    try {
+      if (!this.platform.service.getFanState()) {
+        this.platform.log.warn('MQTT: Setting fan speed only supported for "fan_only" mode');
+        await this.publishTopics();
+        return;
+      }
+
+      const fanSpeed: number = parseInt(payload);
+      if (isNaN(fanSpeed)) {
+        this.platform.log.warn(`MQTT: Invalid fan speed specified: ${payload}`);
+        return;
+      }
+      if (fanSpeed < 0 || fanSpeed > 16) {
+        this.platform.log.warn(`MQTT: Fan speed ${fanSpeed} not between 1 and 16`);
+        return;
+      }
+  
+      await this.platform.service.setFanSpeed(fanSpeed);
+    } catch(error) {
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
   private async setHvacMode(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setMode', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setHvacMode', topic, payload);
 
     try {
       switch (payload) {
@@ -132,12 +165,14 @@ export class HomeAssistantFormat implements IMqttFormat {
           return;
       }  
     } catch(error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
   private async setHvacTemperature(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setTemperature', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setHvacTemperature', topic, payload);
 
     try {
       if (!this.platform.service.getPowerState() || this.platform.service.getFanState()) {
@@ -163,7 +198,9 @@ export class HomeAssistantFormat implements IMqttFormat {
         }
       }
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
@@ -183,19 +220,21 @@ export class HomeAssistantFormat implements IMqttFormat {
   }
 
   private async setSwitchZone(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setZoneSwitch', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchZone', topic, payload);
 
     try {
       const zone = this.getTopicComponent(topic, -2).toUpperCase();
       const value = payload.toLowerCase() === 'on';
       await this.platform.service.setUserEnabled(value, zone);
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
   private async setSwitchMode(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setModeSwitch', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchMode', topic, payload);
 
     try {
       const mode = this.getTopicComponent(topic, -2).toLowerCase();
@@ -213,12 +252,14 @@ export class HomeAssistantFormat implements IMqttFormat {
         await this.platform.service.setPowerState(false);
       }
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
   private async setSwitchFan(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setFanState', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchFan', topic, payload);
 
     try {
       const state: boolean = payload.toLowerCase() === 'on';
@@ -236,7 +277,9 @@ export class HomeAssistantFormat implements IMqttFormat {
 
       await this.platform.service.setFanState(state);
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
@@ -258,7 +301,9 @@ export class HomeAssistantFormat implements IMqttFormat {
 
       this.platform.service.setControlMode(state, zone);
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
@@ -279,6 +324,7 @@ export class HomeAssistantFormat implements IMqttFormat {
       this.publishHvacAction();
       this.publishHvacCurrentTemperature();
       this.publishHvacFanMode();
+      this.publishHvacFanSpeed();
       this.publishHvacMode();
       this.publishHvacTemperature();
       this.publishSwitchZone();
@@ -286,7 +332,9 @@ export class HomeAssistantFormat implements IMqttFormat {
       this.publishSwitchFan();
       this.publishSwitchManual();
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
@@ -345,6 +393,14 @@ export class HomeAssistantFormat implements IMqttFormat {
     }
 
     this.publish('hvac/fan_mode/get', payload);
+  }
+
+  private publishHvacFanSpeed() {
+    this.platform.log.debug(this.constructor.name, 'publishHvacFanSpeed');
+
+    const payload: number = this.platform.service.getFanSpeed();
+
+    this.publish('hvac/fan_speed/get', String(payload));
   }
 
   private publishHvacMode() {
@@ -446,7 +502,9 @@ export class HomeAssistantFormat implements IMqttFormat {
         this.platform.log.info(`MQTT: Publish: ${this.prefix}${topic}, Payload: ${payload}`);
       }
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 }

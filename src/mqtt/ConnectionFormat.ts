@@ -39,7 +39,9 @@ export class ConnectionFormat implements IMqttFormat {
     try {
       this.publishStatus();
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
@@ -71,7 +73,9 @@ export class ConnectionFormat implements IMqttFormat {
         this.platform.log.info(`MQTT: Publish: ${topic}, Payload: ${payload}`);
       }
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 }

@@ -63,7 +63,9 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
         this.service.session.stop();
       });
     } catch(error) {
-      log.error(error);
+      if (error instanceof Error) {
+        log.error(error.message);
+      }
     }
   }
 
@@ -128,7 +130,9 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
       this.pushoverService.init();
 
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -166,8 +170,10 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
           const content = JSON.stringify(devices);
           await fs.promises.mkdir(cacheFolder, {recursive: true});
           await fs.promises.writeFile(cacheFile, content, { encoding: 'utf8'});
-        } catch(ex) {
-          this.log.warn(`Writing config failed [${ex.message}]`);
+        } catch(error) {
+          if (error instanceof Error) {
+            this.log.warn(`Writing config failed [${error.message}]`);
+          }
         }
       }
     }

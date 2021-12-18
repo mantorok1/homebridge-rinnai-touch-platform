@@ -1,4 +1,4 @@
-import { PlatformAccessory } from 'homebridge';
+import { CharacteristicValue, PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { ControlModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
@@ -24,11 +24,11 @@ export class ManualSwitch extends AccessoryBase {
 
     this.service
       .getCharacteristic(this.platform.Characteristic.On)
-      .on('get', this.getCharacteristicValue.bind(this, this.getManualSwitchOn.bind(this), 'On'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setManualSwitchOn.bind(this), 'On'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getManualSwitchOn.bind(this), 'On'))
+      .onSet(this.setCharacteristicValue.bind(this, this.setManualSwitchOn.bind(this), 'On'));
   }
 
-  getManualSwitchOn(): boolean {
+  getManualSwitchOn(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getManualSwitchOn');
 
     let state: ControlModes = ControlModes.AUTO;
@@ -57,7 +57,7 @@ export class ManualSwitch extends AccessoryBase {
     return state === ControlModes.MANUAL;
   }
 
-  async setManualSwitchOn(value: boolean): Promise<void> {
+  async setManualSwitchOn(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setManualSwitchOn', value);
 
     if (value) {

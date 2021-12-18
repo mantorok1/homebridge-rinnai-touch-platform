@@ -1,4 +1,4 @@
-import { PlatformAccessory } from 'homebridge';
+import { CharacteristicValue, PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { AccessoryBase } from './AccessoryBase';
 
@@ -21,20 +21,20 @@ export abstract class ThermostatBase extends AccessoryBase {
 
     this.service
       .getCharacteristic(this.platform.Characteristic.CurrentTemperature)
-      .on('get', this.getCharacteristicValue.bind(this, this.getCurrentTemperature.bind(this), 'CurrentTemperature'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getCurrentTemperature.bind(this), 'CurrentTemperature'));
 
     this.service
       .getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits)
-      .on('get', this.getCharacteristicValue.bind(this, this.getTemperatureUnits.bind(this), 'TemperatureDisplayUnits'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getTemperatureUnits.bind(this), 'TemperatureDisplayUnits'));
   }
 
-  getCurrentTemperature(): number {
+  getCurrentTemperature(): CharacteristicValue {
     this.platform.log.debug('ThermostatBase', 'getCurrentTemperature');
 
     return this.platform.temperatureService.getTemperature(this.platformAccessory.context.zone) ?? 0;
   }
 
-  getTemperatureUnits(): number {
+  getTemperatureUnits(): CharacteristicValue {
     this.platform.log.debug('ThermostatBase', 'getTemperatureUnits');
 
     const state = this.platform.service.getTemperatureUnits();

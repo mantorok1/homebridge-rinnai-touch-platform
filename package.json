@@ -1,7 +1,7 @@
 {
   "displayName": "Rinnai Touch Platform",
   "name": "homebridge-rinnai-touch-platform",
-  "version": "3.3.8",
+  "version": "3.4.0",
   "description": "Homebridge Plugin to control heating/cooling via a Rinnai Touch WiFi Module",
   "license": "Apache-2.0",
   "repository": {
@@ -12,8 +12,8 @@
     "url": "https://github.com/mantorok1/homebridge-rinnai-touch-platform/issues"
   },
   "engines": {
-    "node": ">=10.17.0",
-    "homebridge": ">=1.0.0"
+    "homebridge": "^1.3.0",
+    "node": "^14.18.2 || ^16.13.1"
   },
   "main": "dist/index.js",
   "funding": {
@@ -47,20 +47,21 @@
   "dependencies": {
     "async-mqtt": "^2.6.1",
     "concurrent-queue": "^7.0.2",
+    "debounce": "^1.2.1",
     "jsonpath": "^1.1.1",
-    "node-schedule": "^2.0.0",
+    "node-schedule": "^2.1.0",
     "pushover-notifications": "^1.2.2"
   },
   "devDependencies": {
-    "@types/node": "^14.17.5",
+    "@types/node": "^14.18.1",
     "@types/node-schedule": "^1.3.2",
-    "@typescript-eslint/eslint-plugin": "^4.28.2",
-    "@typescript-eslint/parser": "^4.28.2",
-    "eslint": "^7.30.0",
-    "homebridge": "^1.3.4",
-    "nodemon": "^2.0.12",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "eslint": "^7.32.0",
+    "homebridge": "^1.3.8",
+    "nodemon": "^2.0.15",
     "rimraf": "^3.0.2",
     "ts-node": "^9.1.1",
-    "typescript": "^4.3.5"
+    "typescript": "^4.5.4"
   }
 }

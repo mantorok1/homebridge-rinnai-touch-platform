@@ -1,4 +1,4 @@
-import { PlatformAccessory } from 'homebridge';
+import { CharacteristicValue, PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { AccessoryBase } from './AccessoryBase';
 import { OperatingModes, ControlModes } from '../rinnai/RinnaiService';
@@ -23,15 +23,15 @@ export class Pump extends AccessoryBase {
 
     this.service
       .getCharacteristic(this.platform.Characteristic.Active)
-      .on('get', this.getCharacteristicValue.bind(this, this.getPumpActive.bind(this), 'Active'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setPumpActive.bind(this), 'Active'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getPumpActive.bind(this), 'Active'))
+      .onSet(this.setCharacteristicValue.bind(this, this.setPumpActive.bind(this), 'Active'));
 
     this.service
       .getCharacteristic(this.platform.Characteristic.InUse)
-      .on('get', this.getCharacteristicValue.bind(this, this.getPumpInUse.bind(this), 'InUse'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getPumpInUse.bind(this), 'InUse'));
   }
 
-  getPumpActive(): number {
+  getPumpActive(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getPumpActive');
 
     const state: boolean = this.platform.service.getPumpState();
@@ -41,7 +41,7 @@ export class Pump extends AccessoryBase {
       : this.platform.Characteristic.Active.INACTIVE;
   }
 
-  getPumpInUse(): number {
+  getPumpInUse(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getPumpInUse');
 
     const state: boolean = this.platform.service.getPumpState();
@@ -51,7 +51,7 @@ export class Pump extends AccessoryBase {
       : this.platform.Characteristic.InUse.NOT_IN_USE;
   }
 
-  async setPumpActive(value: number): Promise<void> {
+  async setPumpActive(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setPumpActive', value);
 
     const state: boolean = value === this.platform.Characteristic.Active.ACTIVE;

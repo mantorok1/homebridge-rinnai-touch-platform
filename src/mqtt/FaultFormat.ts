@@ -43,7 +43,9 @@ export class FaultFormat implements IMqttFormat {
         this.publishFault(fault);
       }
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 
@@ -67,7 +69,9 @@ export class FaultFormat implements IMqttFormat {
         this.platform.log.info(`MQTT: Publish: ${topic}, Payload: ${payload}`);
       }
     } catch (error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 }

@@ -260,7 +260,9 @@ export class PushoverService {
         });
       }
     } catch(error) {
-      this.platform.log.warn('Pushover notification(s) failed:', error.message);
+      if (error instanceof Error) {
+        this.platform.log.warn('Pushover notification(s) failed:', error.message);
+      }
     }
   }
 }

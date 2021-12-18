@@ -1,4 +1,4 @@
-import { PlatformAccessory } from 'homebridge';
+import { CharacteristicValue, PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { OperatingModes, ControlModes, ScheduleOverrideModes } from '../rinnai/RinnaiService';
 import { AccessoryBase } from './AccessoryBase';
@@ -23,11 +23,11 @@ export class AdvanceSwitch extends AccessoryBase {
 
     this.service
       .getCharacteristic(this.platform.Characteristic.On)
-      .on('get', this.getCharacteristicValue.bind(this, this.getAdvanceSwitchOn.bind(this), 'On'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setAdvanceSwitchOn.bind(this), 'On'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getAdvanceSwitchOn.bind(this), 'On'))
+      .onSet(this.setCharacteristicValue.bind(this, this.setAdvanceSwitchOn.bind(this), 'On'));
   }
 
-  getAdvanceSwitchOn(): boolean {
+  getAdvanceSwitchOn(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getAdvanceSwitchOn');
 
     let state: ScheduleOverrideModes = ScheduleOverrideModes.NONE;
@@ -51,7 +51,7 @@ export class AdvanceSwitch extends AccessoryBase {
     return state === ScheduleOverrideModes.ADVANCE;
   }
 
-  async setAdvanceSwitchOn(value: boolean): Promise<void> {
+  async setAdvanceSwitchOn(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setAdvanceSwitchOn', value);
 
     if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {

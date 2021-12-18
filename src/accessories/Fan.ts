@@ -1,7 +1,8 @@
-import { PlatformAccessory } from 'homebridge';
+import { CharacteristicValue, PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { AccessoryBase } from './AccessoryBase';
 import { OperatingModes, ControlModes } from '../rinnai/RinnaiService';
+import { debounce } from 'debounce';
 
 export class Fan extends AccessoryBase {
 
@@ -23,28 +24,28 @@ export class Fan extends AccessoryBase {
 
     this.service
       .getCharacteristic(this.platform.Characteristic.On)
-      .on('get', this.getCharacteristicValue.bind(this, this.getFanOn.bind(this), 'On'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setFanOn.bind(this), 'On'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getFanOn.bind(this), 'On'))
+      .onSet(debounce(this.setCharacteristicValue.bind(this, this.setFanOn.bind(this), 'On'), 1000));
 
     this.service
       .getCharacteristic(this.platform.Characteristic.RotationSpeed)
-      .on('get', this.getCharacteristicValue.bind(this, this.getFanRotationSpeed.bind(this), 'RotationSpeed'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setFanRotationSpeed.bind(this), 'RotationSpeed'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getFanRotationSpeed.bind(this), 'RotationSpeed'))
+      .onSet(debounce(this.setCharacteristicValue.bind(this, this.setFanRotationSpeed.bind(this), 'RotationSpeed'), 1000));
   }
 
-  getFanOn(): boolean {
+  getFanOn(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getFanOn');
 
     return this.platform.service.getFanState();
   }
 
-  getFanRotationSpeed(): number {
+  getFanRotationSpeed(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getFanRotationSpeed');
 
     return this.platform.service.getFanSpeed() / 16.0 * 100.0;
   }
 
-  async setFanOn(value: boolean): Promise<void> {
+  async setFanOn(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setFanOn', value);
 
     // If turning fan on then ensure HEAT/COOL is off or EVAP is on
@@ -57,13 +58,13 @@ export class Fan extends AccessoryBase {
       }
     }
 
-    await this.platform.service.setFanState(value);
+    await this.platform.service.setFanState(value as boolean);
   }
 
-  async setFanRotationSpeed(value: number): Promise<void> {
+  async setFanRotationSpeed(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setFanRotationSpeed', value);
 
-    const speed = Math.round(value / 100.0 * 16.0);
+    const speed = Math.round((value as number) / 100.0 * 16.0);
 
     await this.setFanOn(true);
     await this.platform.service.setFanSpeed(speed);

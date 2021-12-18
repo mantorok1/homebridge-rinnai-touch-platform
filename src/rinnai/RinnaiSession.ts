@@ -73,10 +73,12 @@ export class RinnaiSession extends events.EventEmitter {
           this.connectionError = false;
           this.emit('connection');
           break;
-        } catch (error) {
+        } catch (error: unknown) {
           this.connectionError = true;
           this.emit('connection');
-          this.log.warn(`TCP Connection failed. Attempt ${i} of 3 [Error: ${error.message}]`);
+          if (error instanceof Error) {
+            this.log.warn(`TCP Connection failed. Attempt ${i} of 3 [Error: ${error.message}]`);
+          }
           await this.delay(500);
         }
       }
@@ -121,8 +123,10 @@ export class RinnaiSession extends events.EventEmitter {
       this.tcp.removeAllListeners();
 
       this.tcp.destroy();
-    } catch (error) {
-      this.log.error(error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -140,7 +144,9 @@ export class RinnaiSession extends events.EventEmitter {
     try {
       await this.queue(command);
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
       throw error;
     }
   }
@@ -188,7 +194,9 @@ export class RinnaiSession extends events.EventEmitter {
         this.log.warn(`Command failed. Attempt ${i} of 3`);
       }
     } catch (error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
       throw error;
     }
   }
@@ -242,7 +250,9 @@ export class RinnaiSession extends events.EventEmitter {
       this.status.update(message.status!);
       this.emit('status', this.status);
     } catch(error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 
@@ -257,7 +267,9 @@ export class RinnaiSession extends events.EventEmitter {
       await this.delay(2000);
       await this.start();
     } catch(error) {
-      this.log.error(error);
+      if (error instanceof Error) {
+        this.log.error(error.message);
+      }
     }
   }
 

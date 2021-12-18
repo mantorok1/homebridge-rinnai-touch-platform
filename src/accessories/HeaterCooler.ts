@@ -1,4 +1,4 @@
-import { PlatformAccessory } from 'homebridge';
+import { CharacteristicValue, PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { OperatingModes, ControlModes } from '../rinnai/RinnaiService';
 import { ThermostatBase } from './ThermostatBase';
@@ -174,27 +174,27 @@ export class HeaterCooler extends ThermostatBase {
 
     this.service
       .getCharacteristic(this.platform.Characteristic.Active)
-      .on('get', this.getCharacteristicValue.bind(this, this.getActive.bind(this), 'Active'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setActive.bind(this), 'Active'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getActive.bind(this), 'Active'))
+      .onSet(this.setCharacteristicValue.bind(this, this.setActive.bind(this), 'Active'));
 
     this.service
       .getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState)
-      .on('get', this.getCharacteristicValue.bind(this, this.getCurrentHeaterCoolerState.bind(this), 'CurrentHeaterCoolerState'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getCurrentHeaterCoolerState.bind(this), 'CurrentHeaterCoolerState'));
 
     this.service
       .getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
-      .on('get', this.getCharacteristicValue.bind(this, this.getTargetHeaterCoolerState.bind(this), 'TargetHeaterCoolerState'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setTargetHeaterCoolerState.bind(this), 'TargetHeaterCoolerState'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getTargetHeaterCoolerState.bind(this), 'TargetHeaterCoolerState'))
+      .onSet(this.setCharacteristicValue.bind(this, this.setTargetHeaterCoolerState.bind(this), 'TargetHeaterCoolerState'));
 
     this.service
       .getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
-      .on('get', this.getCharacteristicValue.bind(this, this.getHeatingThresholdTemperature.bind(this), 'HeatingThresholdTemperature'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setHeatingThresholdTemperature.bind(this), 'HeatingThresholdTemperature'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getHeatingThresholdTemperature.bind(this), 'HeatingThresholdTemperature'))
+      .onSet(this.setCharacteristicValue.bind(this, this.setHeatingThresholdTemperature.bind(this), 'HeatingThresholdTemperature'));
 
     this.service
       .getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
-      .on('get', this.getCharacteristicValue.bind(this, this.getCoolingThresholdTemperature.bind(this), 'CoolingThresholdTemperature'))
-      .on('set', this.setCharacteristicValue.bind(this, this.setCoolingThresholdTemperature.bind(this), 'CoolingThresholdTemperature'));
+      .onGet(this.getCharacteristicValue.bind(this, this.getCoolingThresholdTemperature.bind(this), 'CoolingThresholdTemperature'))
+      .onSet(this.setCharacteristicValue.bind(this, this.setCoolingThresholdTemperature.bind(this), 'CoolingThresholdTemperature'));
 
     // Wait 15 seconds before setting the event handlers for AUTO mode
     if (this.autoModeEnabled()) {
@@ -219,7 +219,7 @@ export class HeaterCooler extends ThermostatBase {
     }
   }
 
-  getActive(): number {
+  getActive(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getActive');
 
     let state = this.platform.service.getHasMultiSetPoint() || this.platformAccessory.context.zone === 'U'
@@ -235,7 +235,7 @@ export class HeaterCooler extends ThermostatBase {
       : this.platform.Characteristic.Active.INACTIVE;
   }
 
-  getCurrentHeaterCoolerState(): number {
+  getCurrentHeaterCoolerState(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getCurrentHeaterCoolerState');
 
     const state = this.platform.service.getHeaterCoolerActive(this.platformAccessory.context.zone);
@@ -251,7 +251,7 @@ export class HeaterCooler extends ThermostatBase {
     return this.platform.Characteristic.CurrentHeaterCoolerState.COOLING;
   }
 
-  getTargetHeaterCoolerState(): number {
+  getTargetHeaterCoolerState(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getTargetHeaterCoolerState');
 
     if (this.platformAccessory.context.autoMode) {
@@ -265,7 +265,7 @@ export class HeaterCooler extends ThermostatBase {
     return this.platform.Characteristic.TargetHeaterCoolerState.COOL;
   }
 
-  getHeatingThresholdTemperature(): number {
+  getHeatingThresholdTemperature(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getHeatingThresholdTemperature');
 
     const zone = this.platform.service.getHasMultiSetPoint()
@@ -282,7 +282,7 @@ export class HeaterCooler extends ThermostatBase {
     return this.platformAccessory.context.heatingThresholdTemperature;
   }
 
-  getCoolingThresholdTemperature(): number {
+  getCoolingThresholdTemperature(): CharacteristicValue {
     this.platform.log.debug(this.constructor.name, 'getCoolingThresholdTemperature');
 
     const zone = this.platform.service.getHasMultiSetPoint()
@@ -299,7 +299,7 @@ export class HeaterCooler extends ThermostatBase {
     return this.platformAccessory.context.coolingThresholdTemperature;
   }
 
-  async setActive(value: number): Promise<void> {
+  async setActive(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setActive', value);
 
     if (!this.platform.service.getHasMultiSetPoint() && this.platformAccessory.context.zone !== 'U') {
@@ -330,7 +330,7 @@ export class HeaterCooler extends ThermostatBase {
     await this.platform.service.setPowerState(true);
   }
 
-  async setTargetHeaterCoolerState(value: number): Promise<void> {
+  async setTargetHeaterCoolerState(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setTargetHeaterCoolerState', value);
 
     this.platformAccessory.context.autoMode = false;
@@ -418,7 +418,7 @@ export class HeaterCooler extends ThermostatBase {
     this.switching = false;
   }
 
-  async setHeatingThresholdTemperature(value: number): Promise<void> {
+  async setHeatingThresholdTemperature(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setHeatingThresholdTemperature', value);
 
     if (this.platformAccessory.context.autoMode) {
@@ -434,12 +434,12 @@ export class HeaterCooler extends ThermostatBase {
       : 'U';
 
     if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
-      await this.platform.service.setSetPointTemperature(value, zone);
+      await this.platform.service.setSetPointTemperature(value as number, zone);
     }
     await this.autoModeHandler();
   }
 
-  async setCoolingThresholdTemperature(value: number): Promise<void> {
+  async setCoolingThresholdTemperature(value: CharacteristicValue): Promise<void> {
     this.platform.log.debug(this.constructor.name, 'setCoolingThresholdTemperature', value);
 
     if (this.platformAccessory.context.autoMode) {
@@ -455,7 +455,7 @@ export class HeaterCooler extends ThermostatBase {
       : 'U';
 
     if (this.platform.service.getOperatingMode() === OperatingModes.COOLING) {
-      await this.platform.service.setSetPointTemperature(value, zone);
+      await this.platform.service.setSetPointTemperature(value as number, zone);
     }
     await this.autoModeHandler();
   }

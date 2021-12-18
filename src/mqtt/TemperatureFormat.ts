@@ -38,7 +38,9 @@ export class TemperatureFormat implements IMqttFormat {
         }
       }
     } catch(error) {
-      this.platform.log.error(error);
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
     }
   }
 

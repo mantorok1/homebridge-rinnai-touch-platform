@@ -49,19 +49,11 @@ Requirements for `AUTO` mode to function correctly:
 * The controller(s) must supply the current temperature to the module. Not all controllers support this. Alternatively you can supply the current temperature from 3rd party temperature sensors using MQTT, however, I'm not sure how well this will work.
 
 ## Installation
-Note: This plugin requires [Homebridge](https://homebridge.io) (version 1.0.0 or above) to be installed first.
+Note: This plugin requires [Homebridge](https://homebridge.io) (version 1.3.0 or above) to be installed first.
 
 It is highly recommended that you use [Homebridge Config UI X](https://www.npmjs.com/package/homebridge-config-ui-x) to install and configure the plugin. Alternatively you can install from the command line as follows:
 
     npm install -g homebridge-rinnai-touch-platform
-
-## Migration from homebridge-rinnai-touch-plugin
-
-If you currently use the old plugin (ie. `homebridge-rinnai-touch-plugin`) you must uninstall it first before installing this plugin. To uninstall from the command line:
-
-    npm uninstall -g homebridge-rinnai-touch-plugin
-
-Once uninstalled restart Homebridge which should clear the accessories. If this doesn't work you can delete the `cachedAccessories` file from the `.homebridge/accessories` folder.
 
 ## Configuration
 

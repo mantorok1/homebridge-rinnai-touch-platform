@@ -25,6 +25,7 @@ The following formats are supported:
 |`switch/fan/get`<br/>`switch/fan/set`|Gets or sets the circulation fan state. Values can be "on" or "off"|No|
 |`switch/manual/get`<br/>`switch/manual/set`|Gets or sets the manual state. Values can be "on" or "off". Used for systems with single controller|No|
 |`switch/manual/{zone}/get`<br/>`switch/manual/{zone}/set`|Gets or sets the manual state. Values can be "on" or "off". Used for systems with mutliple controllers. `{zone}` can be a, b, c or d|No|
+|`switch/pump/get`<br/>`switch/pump/set`|Gets or sets the evaporative cooler's pump state. Values can be "on" or "off"|No|
 
 The `/get` topics are published and the `/set` topics are subscribed to. 
 

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.1 (2021-12-19)
+
+* Add new MQTT topics for getting and setting the Evaporative Cooler's pump state (`switch/pump/get` & `switch/pump/set`) ([#8](https://github.com/mantorok1/homebridge-rinnai-touch-platform/issues/8))
+
 ## 3.4.0 (2021-12-18)
 
 * Use newer promise-based characteristic getters and setters (onGet & onSet). Requires Homebridge version 1.3.0 or above.

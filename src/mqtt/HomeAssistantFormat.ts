@@ -39,7 +39,8 @@ export class HomeAssistantFormat implements IMqttFormat {
       .set(`${this.prefix}switch/manual/a/set`, this.setSwitchManual.bind(this))
       .set(`${this.prefix}switch/manual/b/set`, this.setSwitchManual.bind(this))
       .set(`${this.prefix}switch/manual/c/set`, this.setSwitchManual.bind(this))
-      .set(`${this.prefix}switch/manual/d/set`, this.setSwitchManual.bind(this));
+      .set(`${this.prefix}switch/manual/d/set`, this.setSwitchManual.bind(this))
+      .set(`${this.prefix}switch/pump/set`, this.setSwitchPump.bind(this));
 
     // Publish on status change
     if (this.platform.settings.mqtt!.publishStatusChanged) {
@@ -307,6 +308,37 @@ export class HomeAssistantFormat implements IMqttFormat {
     }
   }
 
+  private async setSwitchPump(topic: string, payload: string): Promise<void> {
+    this.platform.log.debug(this.constructor.name, 'setSwitchPump', topic, payload);
+
+    try {
+      if (this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING) {
+        this.platform.log.warn('MQTT: Setting pump state only supported when in "Evaporative Cooling" mode');
+        await this.publishTopics();
+        return;
+      }
+
+      if (!this.platform.service.getPowerState()) {
+        this.platform.log.warn('MQTT: Setting pump state not supported for "off" mode');
+        await this.publishTopics();
+        return;
+      }
+
+      if (this.platform.service.getControlMode() !== ControlModes.MANUAL) {
+        this.platform.log.warn('MQTT: Setting pump state not supported for "auto" operation');
+        await this.publishTopics();
+        return;
+      }
+
+      const state: boolean = payload.toLowerCase() === 'on';
+      this.platform.service.setPumpState(state);
+    } catch (error) {
+      if (error instanceof Error) {
+        this.platform.log.error(error.message);
+      }
+    }
+  }
+
   private getTopicComponent(topic: string, index: number): string {
     const components = topic.split('/');
     if (index >= 0) {
@@ -331,6 +363,7 @@ export class HomeAssistantFormat implements IMqttFormat {
       this.publishSwitchMode();
       this.publishSwitchFan();
       this.publishSwitchManual();
+      this.publishSwitchPump();
     } catch (error) {
       if (error instanceof Error) {
         this.platform.log.error(error.message);
@@ -487,6 +520,13 @@ export class HomeAssistantFormat implements IMqttFormat {
       const payload: string = this.platform.service.getControlMode() === ControlModes.MANUAL ? 'on' : 'off';
       this.publish('switch/manual/get', payload);
     }
+  }
+
+  private publishSwitchPump() {
+    this.platform.log.debug(this.constructor.name, 'publishSwitchPump');
+
+    const payload: string = this.platform.service.getPumpState() ? 'on' : 'off';
+    this.publish('switch/pump/get', payload);
   }
 
   private async publish(topic: string, payload: string): Promise<void> {

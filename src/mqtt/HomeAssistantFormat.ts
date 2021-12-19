@@ -351,8 +351,6 @@ export class HomeAssistantFormat implements IMqttFormat {
     this.platform.log.debug(this.constructor.name, 'publishTopics');
 
     try {
-      // this.platform.service.updateStates();
-
       this.publishHvacAction();
       this.publishHvacCurrentTemperature();
       this.publishHvacFanMode();
@@ -509,7 +507,7 @@ export class HomeAssistantFormat implements IMqttFormat {
   private publishSwitchManual() {
     this.platform.log.debug(this.constructor.name, 'publishSwitchManual');
 
-    if (this.platform.service.getHasMultiSetPoint()) {
+    if (this.platform.service.getHasMultiSetPoint() && this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING ) {
       for (const zone of this.platform.service.getZonesInstalled()) {
         if (this.platform.service.getControlMode(zone)) {
           const payload: string = this.platform.service.getControlMode(zone) === ControlModes.MANUAL ? 'on' : 'off';

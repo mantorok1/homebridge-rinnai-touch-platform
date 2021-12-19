@@ -424,7 +424,7 @@ export class RinnaiService extends events.EventEmitter {
 
     try {
       const state = value ? 'N' : 'F';
-      const command = new Command({command: Commands.ScheduleOverride, state: state});
+      const command = new Command({command: Commands.PumpState, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
       if (error instanceof Error) {

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.2 (2021-12-19)
+
+* [FIX] MQTT topic `switch/manual/get` is incorrectly set as `switch/manual/u/get` for evap cooling when heater is "Multi Temperature Set Point"
+* [FIX] Setting pump state causes `Set ScheduleOverride to ... is invalid due to module's current Status`
+
 ## 3.4.1 (2021-12-19)
 
 * Add new MQTT topics for getting and setting the Evaporative Cooler's pump state (`switch/pump/get` & `switch/pump/set`) ([#8](https://github.com/mantorok1/homebridge-rinnai-touch-platform/issues/8))

@@ -66,31 +66,6 @@ export abstract class AccessoryBase {
     }
   }
 
-  /*
-  getCharacteristicValue(
-    getValue: () => CharacteristicValue,
-    characteristic: string,
-    callback: CharacteristicGetCallback,
-  ): void {
-    this.platform.log.debug('AccessoryBase', 'getCharacteristicValue', 'getValue', characteristic, 'callback');
-
-    if (this.platform.settings.showHomebridgeEvents) {
-      this.platform.log.info(`${this.platformAccessory.displayName}: Getting characteristic '${characteristic}'`);
-    }
-
-    try {
-      const value = getValue();
-
-      callback(null, value);
-    } catch (error) {
-      if (error instanceof Error) {
-        this.platform.log.error(error.message);
-        callback(error);
-      }
-    }
-  }
-  */
-
   async setCharacteristicValue(
     setValue: (value: CharacteristicValue) => Promise<void>,
     characteristic: string,
@@ -111,30 +86,4 @@ export abstract class AccessoryBase {
       throw error;
     }
   }
-
-  /*
-  async setCharacteristicValue(
-    setValue,
-    characteristic: string,
-    value: CharacteristicValue,
-    callback: CharacteristicSetCallback,
-  ): Promise<void> {
-    this.platform.log.debug('AccessoryBase', 'setCharacteristic', 'setValue', characteristic, value, 'callback');
-
-    if (this.platform.settings.showHomebridgeEvents) {
-      this.platform.log.info(`${this.platformAccessory.displayName}: Setting characteristic '${characteristic}' to '${value}'`);
-    }
-
-    try {
-      await setValue(value);
-
-      callback(null);
-    } catch (error) {
-      if (error instanceof Error) {
-        this.platform.log.error(error.message);
-        callback(error);
-      }
-    }
-  }
-  */
 }

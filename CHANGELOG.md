@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.3 (2022-01-09)
+
+* Remove build on node 10.x
+* Update dependencies
+
 ## 3.4.2 (2021-12-19)
 
 * [FIX] MQTT topic `switch/manual/get` is incorrectly set as `switch/manual/u/get` for evap cooling when heater is "Multi Temperature Set Point"

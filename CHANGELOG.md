@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.4 (2022-03-27)
+
+* Update dependencies, one of which had a high severity vulnerability
+
 ## 3.4.3 (2022-01-09)
 
 * Remove build on node 10.x

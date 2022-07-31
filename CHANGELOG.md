@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.5 (2022-07-31)
+
+* Update dependencies, some of which had moderate severity vulnerabilities
+
 ## 3.4.4 (2022-03-27)
 
 * Update dependencies, one of which had a high severity vulnerability

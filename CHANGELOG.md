@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.7 (2023-01-14)
+
+* Update dependencies, one of which had a high severity vulnerability
+
 ## 3.4.6 (2022-11-13)
 
 * Support node 18.x and remove support for 12.x

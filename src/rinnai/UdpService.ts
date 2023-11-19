@@ -30,7 +30,7 @@ export class UdpService {
       }, this.timeout);
 
       socket.on('message', (message: Buffer, remote: dgram.RemoteInfo) => {
-        if (message.toString().substr(0, 18) === 'Rinnai_NBW2_Module') {
+        if (message.toString().substring(0, 18) === 'Rinnai_NBW2_Module') {
           clearTimeout(timer);
           socket.removeAllListeners();
           socket.close();

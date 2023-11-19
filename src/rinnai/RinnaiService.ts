@@ -247,7 +247,7 @@ export class RinnaiService extends events.EventEmitter {
     this.log.debug(this.constructor.name, 'setOperatingMode', value);
 
     try {
-      const state = OperatingModes[value].substr(0, 1);
+      const state = OperatingModes[value].substring(0, 1);
       const command = new Command({command: Commands.OperatingMode, state: state});
       await this.session.sendCommand(command);
     } catch (error) {
@@ -261,7 +261,7 @@ export class RinnaiService extends events.EventEmitter {
     this.log.debug(this.constructor.name, 'setOperatingState', value);
 
     try {
-      const state = OperatingStates[value].substr(0, 1);
+      const state = OperatingStates[value].substring(0, 1);
       const command = new Command({command: Commands.OperatingState, state: state});
       await this.session.sendCommand(command);
     } catch (error) {

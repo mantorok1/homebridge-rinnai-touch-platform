@@ -52,7 +52,7 @@ export class Status {
 
   private _status: Record<string, Record<string, Record<string, string>>> = {};
   private _mode?: string;
-  private _hasMultiSetPoint?: boolean
+  private _hasMultiSetPoint?: boolean;
 
   update(status: string) {
     const json = JSON.parse(status);
@@ -62,7 +62,7 @@ export class Status {
     }
     // Update mode
     const mode = this.getState(States.OperatingMode);
-    if (mode !== undefined && mode !== this.mode?.substr(0, 1)) {
+    if (mode !== undefined && mode !== this.mode?.substring(0, 1)) {
       this._mode = this.modeMap[mode];
     }
   }

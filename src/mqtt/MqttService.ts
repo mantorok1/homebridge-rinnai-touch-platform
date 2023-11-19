@@ -112,7 +112,7 @@ export class MqttService {
         if (error instanceof Error) {
           this.platform.log.warn(`Failed to connect to MQTT broker. Error: ${error.message}`);
         }
-        this.platform.log.warn('Will try again in 1 minute');
+        this.platform.log.warn('Will try again in 60 seconds');
         await this.delay(60000);
       }
     }

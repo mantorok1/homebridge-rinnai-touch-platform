@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.9 (2023-11-19)
+
+* Add UI configuration for multiple instances of plugin
+* Support node 20.x and remove support for 14.x
+* Update dependencies
+
 ## 3.4.8 (2023-04-10)
 
 * Update dependencies, one of which had a high severity vulnerability

@@ -2,7 +2,8 @@ import { CharacteristicValue, PlatformAccessory } from 'homebridge';
 import { RinnaiTouchPlatform } from '../platform';
 import { AccessoryBase } from './AccessoryBase';
 import { OperatingModes, ControlModes } from '../rinnai/RinnaiService';
-import { debounce } from 'debounce';
+
+import debounce = require('debounce');
 
 export class Fan extends AccessoryBase {
 

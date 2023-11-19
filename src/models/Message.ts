@@ -8,7 +8,7 @@ export class Message {
         ? message.toString()
         : message;
 
-      if (message.substr(0, 1) !== 'N') {
+      if (message.substring(0, 1) !== 'N') {
         return;
       }
   
@@ -17,8 +17,8 @@ export class Message {
         return;
       }
   
-      this._sequence = parseInt(message.substr(start, 6));
-      this._status = message.substr(start + 6);
+      this._sequence = parseInt(message.substring(start, start + 6));
+      this._status = message.substring(start + 6);
     } catch {
       this._sequence = undefined;
       this._status = undefined;

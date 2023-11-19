@@ -79,14 +79,14 @@ export class Settings {
   }
 
   get controllerType(): string {
-    const controllerType = (<string | undefined>this.config.controllerType)?.substr(0, 1).toUpperCase() ?? 'T';
+    const controllerType = (<string | undefined>this.config.controllerType)?.substring(0, 1).toUpperCase() ?? 'T';
     return ['T', 'H'].includes(controllerType)
       ? controllerType
       : 'T';
   }
 
   get zoneType(): string {
-    const zoneType = (<string | undefined>this.config.zoneType)?.substr(0, 1).toUpperCase() ?? 'S';
+    const zoneType = (<string | undefined>this.config.zoneType)?.substring(0, 1).toUpperCase() ?? 'S';
     return ['N', 'S', 'H'].includes(zoneType)
       ? zoneType
       : 'S';

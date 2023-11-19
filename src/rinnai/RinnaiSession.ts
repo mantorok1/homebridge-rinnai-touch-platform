@@ -18,7 +18,7 @@ export class RinnaiSession extends events.EventEmitter {
 
   private tcp: TcpService;
   private jobPing?: schedule.Job;
-  private jobBoot?: schedule.Job
+  private jobBoot?: schedule.Job;
   private readonly queue: cq;
   private _message?: Message;
   private _status: Status = new Status;

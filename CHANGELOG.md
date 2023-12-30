@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.10 (2023-12-30)
+
+* Improved documentation
+* Update dependencies
+
 ## 3.4.9 (2023-11-19)
 
 * Add UI configuration for multiple instances of plugin

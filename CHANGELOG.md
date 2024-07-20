@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.12 (2024-07-20)
+
+* Update dependencies, some of which had high severity vulnerabilities
+
 ## 3.4.11 (2024-02-25)
 
 * Update dependencies

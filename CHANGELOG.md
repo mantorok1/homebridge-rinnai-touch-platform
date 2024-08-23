@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.13 (2024-08-24)
+
+* Add support for Homebridge 2.0 Beta
+* Add support for node 22.x and remove support for 16.x
+* Update dependencies, one of which had a moderate severity vulnerability
+
 ## 3.4.12 (2024-07-20)
 
 * Update dependencies, some of which had high severity vulnerabilities

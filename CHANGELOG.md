@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 3.4.14 (2024-01-19)
+## 3.4.14 (2025-01-19)
 
 * Minor fix
 * Update dependencies, one of which had a high severity vulnerability

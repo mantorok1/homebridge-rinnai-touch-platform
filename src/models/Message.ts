@@ -4,21 +4,21 @@ export class Message {
 
   constructor(message: Buffer | string) {
     try {
-      message = (message instanceof Buffer)
+      const messageString = (message instanceof Buffer)
         ? message.toString()
-        : message;
+        : message as string;
 
-      if (message.substring(0, 1) !== 'N') {
+      if (messageString.substring(0, 1) !== 'N') {
         return;
       }
   
-      const start = message.lastIndexOf('[') - 6;
+      const start = messageString.lastIndexOf('[') - 6;
       if (start < 0) {
         return;
       }
   
-      this._sequence = parseInt(message.substring(start, start + 6));
-      this._status = message.substring(start + 6);
+      this._sequence = parseInt(messageString.substring(start, start + 6));
+      this._status = messageString.substring(start + 6);
     } catch {
       this._sequence = undefined;
       this._status = undefined;

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.14 (2024-01-19)
+
+* Minor fix
+* Update dependencies, one of which had a high severity vulnerability
+
 ## 3.4.13 (2024-08-24)
 
 * Add support for Homebridge 2.0 Beta

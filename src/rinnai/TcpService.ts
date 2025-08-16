@@ -110,7 +110,7 @@ export class TcpService extends events.EventEmitter {
           throw new Error('Cannot write data as socket is undefined');
         }
 
-        this.socket.write(data, (error?: Error) => {
+        this.socket.write(data, (error?: Error | null) => {
           if (error) {
             reject(error);
           } else {

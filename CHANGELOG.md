@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.15 (2025-08-16)
+
+* Update dependencies
+
 ## 3.4.14 (2025-01-19)
 
 * Minor fix

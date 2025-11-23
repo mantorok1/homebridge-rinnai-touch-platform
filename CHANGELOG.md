@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.4.16 (2025-11-23)
+
+* Update dependencies, one of which had a high severity vulnerability
+
 ## 3.4.15 (2025-08-16)
 
 * Update dependencies

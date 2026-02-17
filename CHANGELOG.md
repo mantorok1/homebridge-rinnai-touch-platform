@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+# 3.4.17 (2026-02-17)
+
+* Add support for node 24.x and remove support for 18.x
+* Update dependencies, two of which had a high severity vulnerability
+
 ## 3.4.16 (2025-11-23)
 
 * Update dependencies, one of which had a high severity vulnerability

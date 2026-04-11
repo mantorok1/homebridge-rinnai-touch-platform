@@ -1,6 +1,6 @@
 import mqtt = require('async-mqtt');
-import jsonpath = require('jsonpath');
 
+import { JSONPath} from 'jsonpath-plus';
 import { RinnaiTouchPlatform } from '../platform';
 import { IMqttFormat } from './MqttService';
 
@@ -57,7 +57,7 @@ export class TemperatureFormat implements IMqttFormat {
       }
 
       const json = JSON.parse(payload);
-      const result = jsonpath.query(json, path);
+      const result = JSONPath({path: path, json});
 
       if (Array.isArray(result) && result.length > 0) {
         temperature = Number(result[0]);

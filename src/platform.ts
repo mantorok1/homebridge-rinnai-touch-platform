@@ -28,8 +28,7 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   public readonly mqttService!: MqttService;
   public readonly pushoverService!: PushoverService;
   public readonly temperatureService!: TemperatureService;
-  private _serviceInitialised = false;
-  private _serviceInitialising = false;
+  private _initServicePromise?: Promise<void>;
 
   constructor(
     public readonly log: Logger,
@@ -85,22 +84,11 @@ export class RinnaiTouchPlatform implements DynamicPlatformPlugin {
   private async initService(): Promise<void> {
     this.log.debug(this.constructor.name, 'initService');
 
-    return new Promise((resolve) => {
-      if (this._serviceInitialised) {
-        resolve();
-      }
+    if (!this._initServicePromise) {
+      this._initServicePromise = this.service.init();
+    }
 
-      this.service.session.once('status', () => {
-        this._serviceInitialised = true;
-        this._serviceInitialising = false;
-        resolve();
-      });
-
-      if (!this._serviceInitialising) {
-        this._serviceInitialising = true;
-        this.service.init();
-      }
-    });
+    await this._initServicePromise;
   }
 
   async discoverDevices(): Promise<void> {

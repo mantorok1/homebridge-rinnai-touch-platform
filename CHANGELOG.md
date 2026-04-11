@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+# 3.4.18 (2026-04-11)
+
+* [FIX] Wait for controller to enter "Normal" state before starting configuration ([#14](https://github.com/mantorok1/homebridge-rinnai-touch-platform/issues/14))
+* Switch to use `jsonpath-plus` as `jsonpath` has vulnerabilities
+* Update dependencies, some of which had vulnerabilities
+
 # 3.4.17 (2026-02-17)
 
 * Add support for node 24.x and remove support for 18.x

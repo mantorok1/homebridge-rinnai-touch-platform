@@ -19,7 +19,7 @@ export class AccessoryService {
     C: 'Cool',
     E: 'Cool',
     F: 'Fan',
-  }
+  };
 
   constructor(private readonly platform: RinnaiTouchPlatform) { }
 

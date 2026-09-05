@@ -1,26 +1,27 @@
-import mqtt = require('async-mqtt');
+import type * as mqtt from 'mqtt'
 
-import { RinnaiTouchPlatform } from '../platform';
-import { IMqttFormat } from './MqttService';
-import { OperatingModes, ControlModes } from '../rinnai/RinnaiService';
+import type { RinnaiTouchPlatform } from '../platform.js'
+import type { IMqttFormat } from './MqttService.js'
+
+import { ControlModes, OperatingModes } from '../rinnai/RinnaiService.js'
 
 export class HomeAssistantFormat implements IMqttFormat {
-  private readonly subTopics: Map<string, (topic: string, payload: string) => Promise<void>> = new Map();
-  private readonly topicPayloads: Map<string, string> = new Map();
-  private readonly prefix: string;
+  private readonly subTopics: Map<string, (topic: string, payload: string) => Promise<void>> = new Map()
+  private readonly topicPayloads: Map<string, string> = new Map()
+  private readonly prefix: string
   private readonly modeMap: Record<string, OperatingModes> = {
-    'heat': OperatingModes.HEATING,
-    'cool': OperatingModes.COOLING,
-    'evap': OperatingModes.EVAPORATIVE_COOLING,
-  };
+    heat: OperatingModes.HEATING,
+    cool: OperatingModes.COOLING,
+    evap: OperatingModes.EVAPORATIVE_COOLING,
+  }
 
   constructor(
     private readonly platform: RinnaiTouchPlatform,
-    private readonly client: mqtt.AsyncMqttClient,
+    private readonly client: mqtt.MqttClient,
   ) {
     this.prefix = this.platform.settings.mqtt!.topicPrefix
       ? `${this.platform.settings.mqtt!.topicPrefix}/`
-      : '';
+      : ''
 
     this.subTopics
       .set(`${this.prefix}hvac/fan_mode/set`, this.setHvacFanMode.bind(this))
@@ -40,508 +41,506 @@ export class HomeAssistantFormat implements IMqttFormat {
       .set(`${this.prefix}switch/manual/b/set`, this.setSwitchManual.bind(this))
       .set(`${this.prefix}switch/manual/c/set`, this.setSwitchManual.bind(this))
       .set(`${this.prefix}switch/manual/d/set`, this.setSwitchManual.bind(this))
-      .set(`${this.prefix}switch/pump/set`, this.setSwitchPump.bind(this));
+      .set(`${this.prefix}switch/pump/set`, this.setSwitchPump.bind(this))
 
     // Publish on status change
     if (this.platform.settings.mqtt!.publishStatusChanged) {
       this.platform.service.session.on('status', () => {
-        this.publishTopics();
-      });
+        this.publishTopics()
+      })
       this.platform.temperatureService.on('temperature_change', () => {
-        this.publishTopics();
-      });
+        this.publishTopics()
+      })
     }
   }
 
   get subscriptionTopics(): string[] {
-    return [...this.subTopics.keys()];
+    return [...this.subTopics.keys()]
   }
 
   process(topic: string, payload: string): void {
-    this.platform.log.debug(this.constructor.name, 'process', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'process', topic, payload)
 
     try {
-      const setValue = this.subTopics.get(topic);
+      const setValue = this.subTopics.get(topic)
       if (setValue) {
-        setValue(topic, payload);
+        setValue(topic, payload)
       }
-    } catch(error) {
+    } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private async setHvacFanMode(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setHvacFanMode', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setHvacFanMode', topic, payload)
 
     try {
       if (!this.platform.service.getFanState()) {
-        this.platform.log.warn('MQTT: Setting fan mode only supported for "fan_only" mode');
-        await this.publishTopics();
-        return;
+        this.platform.log.warn('MQTT: Setting fan mode only supported for "fan_only" mode')
+        await this.publishTopics()
+        return
       }
 
-      let fanSpeed: number;
-      switch(payload) {
+      let fanSpeed: number
+      switch (payload) {
         case 'low':
-          fanSpeed = 5;
-          break;
+          fanSpeed = 5
+          break
         case 'medium':
-          fanSpeed = 10;
-          break;
+          fanSpeed = 10
+          break
         case 'high':
-          fanSpeed = 15;
-          break;
+          fanSpeed = 15
+          break
         default:
-          this.platform.log.warn(`MQTT: Invalid fan mode '${payload}' in payload`);
-          await this.publishTopics();
-          return;
+          this.platform.log.warn(`MQTT: Invalid fan mode '${payload}' in payload`)
+          await this.publishTopics()
+          return
       }
-  
-      await this.platform.service.setFanSpeed(fanSpeed);
-    } catch(error) {
+
+      await this.platform.service.setFanSpeed(fanSpeed)
+    } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private async setHvacFanSpeed(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setHvacFanSpeed', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setHvacFanSpeed', topic, payload)
 
     try {
       if (!this.platform.service.getFanState()) {
-        this.platform.log.warn('MQTT: Setting fan speed only supported for "fan_only" mode');
-        await this.publishTopics();
-        return;
+        this.platform.log.warn('MQTT: Setting fan speed only supported for "fan_only" mode')
+        await this.publishTopics()
+        return
       }
 
-      const fanSpeed: number = parseInt(payload);
-      if (isNaN(fanSpeed)) {
-        this.platform.log.warn(`MQTT: Invalid fan speed specified: ${payload}`);
-        return;
+      const fanSpeed: number = parseInt(payload)
+      if (Number.isNaN(fanSpeed)) {
+        this.platform.log.warn(`MQTT: Invalid fan speed specified: ${payload}`)
+        return
       }
       if (fanSpeed < 0 || fanSpeed > 16) {
-        this.platform.log.warn(`MQTT: Fan speed ${fanSpeed} not between 1 and 16`);
-        return;
+        this.platform.log.warn(`MQTT: Fan speed ${fanSpeed} not between 1 and 16`)
+        return
       }
-  
-      await this.platform.service.setFanSpeed(fanSpeed);
-    } catch(error) {
+
+      await this.platform.service.setFanSpeed(fanSpeed)
+    } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private async setHvacMode(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setHvacMode', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setHvacMode', topic, payload)
 
     try {
       switch (payload) {
         case 'fan_only':
-          await this.platform.service.setPowerState(false);
-          await this.platform.service.setFanState(true);
-          break;
+          await this.platform.service.setPowerState(false)
+          await this.platform.service.setFanState(true)
+          break
         case 'off':
-          await this.platform.service.setPowerState(false);
-          await this.platform.service.setFanState(false);
-          break;
+          await this.platform.service.setPowerState(false)
+          await this.platform.service.setFanState(false)
+          break
         case 'heat':
-          await this.platform.service.setFanState(false);
-          await this.platform.service.setOperatingMode(OperatingModes.HEATING);
-          await this.platform.service.setPowerState(true);
-          break;
+          await this.platform.service.setFanState(false)
+          await this.platform.service.setOperatingMode(OperatingModes.HEATING)
+          await this.platform.service.setPowerState(true)
+          break
         case 'cool':
-          await this.platform.service.setFanState(false);
+          await this.platform.service.setFanState(false)
           await this.platform.service.setOperatingMode(this.platform.service.getHasEvaporative()
             ? OperatingModes.EVAPORATIVE_COOLING
-            : OperatingModes.COOLING);
-          await this.platform.service.setPowerState(true);
-          break;
+            : OperatingModes.COOLING)
+          await this.platform.service.setPowerState(true)
+          break
         default:
-          this.platform.log.warn(`MQTT: Invalid mode '${payload}' in payload`);
-          await this.publishTopics();
-          return;
-      }  
-    } catch(error) {
+          this.platform.log.warn(`MQTT: Invalid mode '${payload}' in payload`)
+          await this.publishTopics()
+      }
+    } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private async setHvacTemperature(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setHvacTemperature', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setHvacTemperature', topic, payload)
 
     try {
       if (!this.platform.service.getPowerState() || this.platform.service.getFanState()) {
-        this.platform.log.warn('MQTT: Setting temperature only supported for "heat" and "cool" modes');
-        await this.publishTopics();
-        return;
+        this.platform.log.warn('MQTT: Setting temperature only supported for "heat" and "cool" modes')
+        await this.publishTopics()
+        return
       }
 
-      const json: Record<string, number> | number = JSON.parse(payload);
+      const json: Record<string, number> | number = JSON.parse(payload)
       if (typeof json === 'object') {
         for (const zone in json) {
           if (this.isValidTemperature(json[zone])) {
-            await this.platform.service.setSetPointTemperature(json[zone], zone);
+            await this.platform.service.setSetPointTemperature(json[zone], zone)
           } else {
-            await this.publishTopics();
+            await this.publishTopics()
           }
         }
       } else {
         if (this.isValidTemperature(json)) {
-          await this.platform.service.setSetPointTemperature(json);
+          await this.platform.service.setSetPointTemperature(json)
         } else {
-          await this.publishTopics();
+          await this.publishTopics()
         }
       }
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private isValidTemperature(temp: number): boolean {
-    this.platform.log.debug(this.constructor.name, 'isValidTemperature', temp);
+    this.platform.log.debug(this.constructor.name, 'isValidTemperature', temp)
 
-    const value = parseInt(`${temp}`);
-    if (isNaN(value)) {
-      this.platform.log.warn(`MQTT: Invalid temperature specified: ${temp}`);
-      return false;
+    const value = parseInt(`${temp}`)
+    if (Number.isNaN(value)) {
+      this.platform.log.warn(`MQTT: Invalid temperature specified: ${temp}`)
+      return false
     }
     if (value < 0 || value > 30) {
-      this.platform.log.warn(`MQTT: Temperature ${temp} not between 0 and 30`);
-      return false;
+      this.platform.log.warn(`MQTT: Temperature ${temp} not between 0 and 30`)
+      return false
     }
-    return true;
+    return true
   }
 
   private async setSwitchZone(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setSwitchZone', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchZone', topic, payload)
 
     try {
-      const zone = this.getTopicComponent(topic, -2).toUpperCase();
-      const value = payload.toLowerCase() === 'on';
-      await this.platform.service.setUserEnabled(value, zone);
+      const zone = this.getTopicComponent(topic, -2).toUpperCase()
+      const value = payload.toLowerCase() === 'on'
+      await this.platform.service.setUserEnabled(value, zone)
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private async setSwitchMode(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setSwitchMode', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchMode', topic, payload)
 
     try {
-      const mode = this.getTopicComponent(topic, -2).toLowerCase();
-      const operatingMode: OperatingModes = this.modeMap[mode];
-      const state: boolean = payload.toLowerCase() === 'on';
+      const mode = this.getTopicComponent(topic, -2).toLowerCase()
+      const operatingMode: OperatingModes = this.modeMap[mode]
+      const state: boolean = payload.toLowerCase() === 'on'
 
       if (this.platform.service.getFanState()) {
-        await this.platform.service.setFanState(false);
+        await this.platform.service.setFanState(false)
       }
 
       if (state) {
-        await this.platform.service.setOperatingMode(operatingMode);
-        await this.platform.service.setPowerState(true);
+        await this.platform.service.setOperatingMode(operatingMode)
+        await this.platform.service.setPowerState(true)
       } else {
-        await this.platform.service.setPowerState(false);
+        await this.platform.service.setPowerState(false)
       }
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private async setSwitchFan(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setSwitchFan', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchFan', topic, payload)
 
     try {
-      const state: boolean = payload.toLowerCase() === 'on';
+      const state: boolean = payload.toLowerCase() === 'on'
 
       if (this.platform.service.getOperatingMode() === OperatingModes.EVAPORATIVE_COOLING) {
         if (state && !this.platform.service.getPowerState()) {
-          await this.platform.service.setPowerState(true);
+          await this.platform.service.setPowerState(true)
         }
-        await this.platform.service.setControlMode(ControlModes.MANUAL);
+        await this.platform.service.setControlMode(ControlModes.MANUAL)
       } else {
         if (state && this.platform.service.getPowerState()) {
-          await this.platform.service.setPowerState(false);
+          await this.platform.service.setPowerState(false)
         }
       }
 
-      await this.platform.service.setFanState(state);
+      await this.platform.service.setFanState(state)
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private async setSwitchManual(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setSwitchManual', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchManual', topic, payload)
 
     try {
       if (!this.platform.service.getPowerState() && !this.platform.service.getFanState()) {
-        this.platform.log.warn('MQTT: Setting manual operation not supported for "off" mode');
-        await this.publishTopics();
-        return;
+        this.platform.log.warn('MQTT: Setting manual operation not supported for "off" mode')
+        await this.publishTopics()
+        return
       }
 
-      let zone: string = this.getTopicComponent(topic, -2).toUpperCase();
-      zone = zone.length !== 1 ? 'U' : zone;
+      let zone: string = this.getTopicComponent(topic, -2).toUpperCase()
+      zone = zone.length !== 1 ? 'U' : zone
       const state: ControlModes = payload.toLowerCase() === 'on'
         ? ControlModes.MANUAL
-        : ControlModes.AUTO;
+        : ControlModes.AUTO
 
-      this.platform.service.setControlMode(state, zone);
+      this.platform.service.setControlMode(state, zone)
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private async setSwitchPump(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'setSwitchPump', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'setSwitchPump', topic, payload)
 
     try {
       if (this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING) {
-        this.platform.log.warn('MQTT: Setting pump state only supported when in "Evaporative Cooling" mode');
-        await this.publishTopics();
-        return;
+        this.platform.log.warn('MQTT: Setting pump state only supported when in "Evaporative Cooling" mode')
+        await this.publishTopics()
+        return
       }
 
       if (!this.platform.service.getPowerState()) {
-        this.platform.log.warn('MQTT: Setting pump state not supported for "off" mode');
-        await this.publishTopics();
-        return;
+        this.platform.log.warn('MQTT: Setting pump state not supported for "off" mode')
+        await this.publishTopics()
+        return
       }
 
       if (this.platform.service.getControlMode() !== ControlModes.MANUAL) {
-        this.platform.log.warn('MQTT: Setting pump state not supported for "auto" operation');
-        await this.publishTopics();
-        return;
+        this.platform.log.warn('MQTT: Setting pump state not supported for "auto" operation')
+        await this.publishTopics()
+        return
       }
 
-      const state: boolean = payload.toLowerCase() === 'on';
-      this.platform.service.setPumpState(state);
+      const state: boolean = payload.toLowerCase() === 'on'
+      this.platform.service.setPumpState(state)
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private getTopicComponent(topic: string, index: number): string {
-    const components = topic.split('/');
+    const components = topic.split('/')
     if (index >= 0) {
-      return components[index];
+      return components[index]
     }
-    return components[components.length + index];
+    return components[components.length + index]
   }
 
   async publishTopics(): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'publishTopics');
+    this.platform.log.debug(this.constructor.name, 'publishTopics')
 
     try {
-      this.publishHvacAction();
-      this.publishHvacCurrentTemperature();
-      this.publishHvacFanMode();
-      this.publishHvacFanSpeed();
-      this.publishHvacMode();
-      this.publishHvacTemperature();
-      this.publishSwitchZone();
-      this.publishSwitchMode();
-      this.publishSwitchFan();
-      this.publishSwitchManual();
-      this.publishSwitchPump();
+      this.publishHvacAction()
+      this.publishHvacCurrentTemperature()
+      this.publishHvacFanMode()
+      this.publishHvacFanSpeed()
+      this.publishHvacMode()
+      this.publishHvacTemperature()
+      this.publishSwitchZone()
+      this.publishSwitchMode()
+      this.publishSwitchFan()
+      this.publishSwitchManual()
+      this.publishSwitchPump()
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private publishHvacAction() {
-    this.platform.log.debug(this.constructor.name, 'publishHvacAction');
+    this.platform.log.debug(this.constructor.name, 'publishHvacAction')
 
-    const payload: Record<string, string> = {};
-    for(const zone of this.platform.service.getZonesInstalled()) {
+    const payload: Record<string, string> = {}
+    for (const zone of this.platform.service.getZonesInstalled()) {
       if (!this.platform.service.getUserEnabled(zone)) {
-        payload[zone] = 'off';
-        continue;
+        payload[zone] = 'off'
+        continue
       }
       if (this.platform.service.getFanState()) {
-        payload[zone] = 'fan';
-        continue;
+        payload[zone] = 'fan'
+        continue
       }
       if (!this.platform.service.getPowerState()) {
-        payload[zone] = 'off';
-        continue;
+        payload[zone] = 'off'
+        continue
       }
       if (!this.platform.service.getAutoEnabled(zone)) {
-        payload[zone] = 'idle';
-        continue;
+        payload[zone] = 'idle'
+        continue
       }
       payload[zone] = this.platform.service.getOperatingMode() === OperatingModes.HEATING
         ? 'heating'
-        : 'cooling';
+        : 'cooling'
     }
-    this.publish('hvac/action/get', JSON.stringify(payload));
+    this.publish('hvac/action/get', JSON.stringify(payload))
   }
 
   private publishHvacCurrentTemperature() {
-    this.platform.log.debug(this.constructor.name, 'publishHvacCurrentTemperature');
+    this.platform.log.debug(this.constructor.name, 'publishHvacCurrentTemperature')
 
-    const payload: Record<string, number> = {};
-    for(const zone of this.platform.service.getZonesInstalled()) {
-      const temperature = this.platform.temperatureService.getTemperature(zone);
+    const payload: Record<string, number> = {}
+    for (const zone of this.platform.service.getZonesInstalled()) {
+      const temperature = this.platform.temperatureService.getTemperature(zone)
       if (temperature !== undefined) {
-        payload[zone] = temperature;
+        payload[zone] = temperature
       }
     }
-    this.publish('hvac/current_temperature/get', JSON.stringify(payload));
+    this.publish('hvac/current_temperature/get', JSON.stringify(payload))
   }
 
   private publishHvacFanMode() {
-    this.platform.log.debug(this.constructor.name, 'publishHvacFanMode');
+    this.platform.log.debug(this.constructor.name, 'publishHvacFanMode')
 
-    const fanSpeed: number = this.platform.service.getFanSpeed();
+    const fanSpeed: number = this.platform.service.getFanSpeed()
 
-    let payload = 'low';
+    let payload = 'low'
     if (fanSpeed > 5) {
-      payload = 'medium';
+      payload = 'medium'
     }
     if (fanSpeed > 10) {
-      payload = 'high';
+      payload = 'high'
     }
 
-    this.publish('hvac/fan_mode/get', payload);
+    this.publish('hvac/fan_mode/get', payload)
   }
 
   private publishHvacFanSpeed() {
-    this.platform.log.debug(this.constructor.name, 'publishHvacFanSpeed');
+    this.platform.log.debug(this.constructor.name, 'publishHvacFanSpeed')
 
-    const payload: number = this.platform.service.getFanSpeed();
+    const payload: number = this.platform.service.getFanSpeed()
 
-    this.publish('hvac/fan_speed/get', String(payload));
+    this.publish('hvac/fan_speed/get', String(payload))
   }
 
   private publishHvacMode() {
-    this.platform.log.debug(this.constructor.name, 'publishHvacMode');
+    this.platform.log.debug(this.constructor.name, 'publishHvacMode')
 
-    let payload: string;
+    let payload: string
     if (this.platform.service.getFanState()) {
-      payload = 'fan_only';
+      payload = 'fan_only'
     } else if (!this.platform.service.getPowerState()) {
-      payload = 'off';
+      payload = 'off'
     } else if (this.platform.service.getOperatingMode() === OperatingModes.HEATING) {
-      payload = 'heat';
+      payload = 'heat'
     } else {
-      payload = 'cool';
-
+      payload = 'cool'
     }
-    this.publish('hvac/mode/get', payload);
+    this.publish('hvac/mode/get', payload)
   }
 
   private publishHvacTemperature() {
-    this.platform.log.debug(this.constructor.name, 'publishHvacTemperature');
+    this.platform.log.debug(this.constructor.name, 'publishHvacTemperature')
 
-    let payload: Record<string, number> | number;
+    let payload: Record<string, number> | number
     if (this.platform.service.getHasMultiSetPoint()) {
-      payload = {};
+      payload = {}
       for (const zone of this.platform.service.getZonesInstalled()) {
         if (this.platform.service.getSetPointTemperature(zone) !== undefined) {
-          payload[zone] = this.platform.service.getSetPointTemperature(zone) ?? 0;
+          payload[zone] = this.platform.service.getSetPointTemperature(zone) ?? 0
         }
       }
     } else {
-      payload = this.platform.service.getSetPointTemperature() ?? 0;
+      payload = this.platform.service.getSetPointTemperature() ?? 0
     }
 
-    this.publish('hvac/temperature/get', JSON.stringify(payload));
+    this.publish('hvac/temperature/get', JSON.stringify(payload))
   }
 
   private publishSwitchZone() {
-    this.platform.log.debug(this.constructor.name, 'publishSwitchZone');
+    this.platform.log.debug(this.constructor.name, 'publishSwitchZone')
 
-    const zonesInstalled = this.platform.service.getZonesInstalled();
+    const zonesInstalled = this.platform.service.getZonesInstalled()
     for (const zone of ['A', 'B', 'C', 'D']) {
       if (zonesInstalled.includes(zone)) {
-        const payload: string = this.platform.service.getUserEnabled(zone) ? 'on' : 'off';
-        this.publish(`switch/zone/${zone.toLowerCase()}/get`, payload);
+        const payload: string = this.platform.service.getUserEnabled(zone) ? 'on' : 'off'
+        this.publish(`switch/zone/${zone.toLowerCase()}/get`, payload)
       } else {
-        this.publish(`switch/zone/${zone.toLowerCase()}/get`, 'off');
+        this.publish(`switch/zone/${zone.toLowerCase()}/get`, 'off')
       }
     }
   }
 
   private publishSwitchMode() {
-    this.platform.log.debug(this.constructor.name, 'publishSwitchMode');
+    this.platform.log.debug(this.constructor.name, 'publishSwitchMode')
 
-    let payload: string;
+    let payload: string
     for (const mode of ['heat', 'cool', 'evap']) {
       if (this.platform.service.getPowerState()) {
-        payload = this.platform.service.getOperatingMode() === this.modeMap[mode] ? 'on' : 'off';
+        payload = this.platform.service.getOperatingMode() === this.modeMap[mode] ? 'on' : 'off'
       } else {
-        payload = 'off';
+        payload = 'off'
       }
-      this.publish(`switch/${mode}/get`, payload);
+      this.publish(`switch/${mode}/get`, payload)
     }
   }
 
   private publishSwitchFan() {
-    this.platform.log.debug(this.constructor.name, 'publishSwitchFan');
+    this.platform.log.debug(this.constructor.name, 'publishSwitchFan')
 
-    const payload: string = this.platform.service.getFanState() ? 'on' : 'off';
-    this.publish('switch/fan/get', payload);
+    const payload: string = this.platform.service.getFanState() ? 'on' : 'off'
+    this.publish('switch/fan/get', payload)
   }
 
   private publishSwitchManual() {
-    this.platform.log.debug(this.constructor.name, 'publishSwitchManual');
+    this.platform.log.debug(this.constructor.name, 'publishSwitchManual')
 
-    if (this.platform.service.getHasMultiSetPoint() && this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING ) {
+    if (this.platform.service.getHasMultiSetPoint() && this.platform.service.getOperatingMode() !== OperatingModes.EVAPORATIVE_COOLING) {
       for (const zone of this.platform.service.getZonesInstalled()) {
         if (this.platform.service.getControlMode(zone)) {
-          const payload: string = this.platform.service.getControlMode(zone) === ControlModes.MANUAL ? 'on' : 'off';
-          this.publish(`switch/manual/${zone.toLowerCase()}/get`, payload);
+          const payload: string = this.platform.service.getControlMode(zone) === ControlModes.MANUAL ? 'on' : 'off'
+          this.publish(`switch/manual/${zone.toLowerCase()}/get`, payload)
         }
       }
     } else {
-      const payload: string = this.platform.service.getControlMode() === ControlModes.MANUAL ? 'on' : 'off';
-      this.publish('switch/manual/get', payload);
+      const payload: string = this.platform.service.getControlMode() === ControlModes.MANUAL ? 'on' : 'off'
+      this.publish('switch/manual/get', payload)
     }
   }
 
   private publishSwitchPump() {
-    this.platform.log.debug(this.constructor.name, 'publishSwitchPump');
+    this.platform.log.debug(this.constructor.name, 'publishSwitchPump')
 
-    const payload: string = this.platform.service.getPumpState() ? 'on' : 'off';
-    this.publish('switch/pump/get', payload);
+    const payload: string = this.platform.service.getPumpState() ? 'on' : 'off'
+    this.publish('switch/pump/get', payload)
   }
 
   private async publish(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'publish', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'publish', topic, payload)
 
     try {
       if (payload === this.topicPayloads.get(topic) && !this.platform.settings.mqtt!.publishAll) {
-        return;
+        return
       }
-      this.topicPayloads.set(topic, payload);
-      await this.client.publish(`${this.prefix}${topic}`, payload, {retain: true});
+      this.topicPayloads.set(topic, payload)
+      await this.client.publishAsync(`${this.prefix}${topic}`, payload, { retain: true })
       if (this.platform.settings.mqtt!.showMqttEvents) {
-        this.platform.log.info(`MQTT: Publish: ${this.prefix}${topic}, Payload: ${payload}`);
+        this.platform.log.info(`MQTT: Publish: ${this.prefix}${topic}, Payload: ${payload}`)
       }
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }

@@ -1,80 +1,80 @@
-import mqtt = require('async-mqtt');
+import type * as mqtt from 'mqtt'
 
-import { RinnaiTouchPlatform } from '../platform';
-import { IMqttFormat } from './MqttService';
+import type { RinnaiTouchPlatform } from '../platform.js'
+import type { IMqttFormat } from './MqttService.js'
 
 export class ConnectionFormat implements IMqttFormat {
-  private readonly pubTopic: string;
-  private topicPayload: string | undefined;
-  private connectionError: boolean | undefined;
+  private readonly pubTopic: string
+  private topicPayload: string | undefined
+  private connectionError: boolean | undefined
 
   constructor(
     private readonly platform: RinnaiTouchPlatform,
-    private readonly client: mqtt.AsyncMqttClient,
+    private readonly client: mqtt.MqttClient,
   ) {
     const prefix: string = this.platform.settings.mqtt!.topicPrefix
       ? `${this.platform.settings.mqtt!.topicPrefix}/`
-      : '';
-    this.pubTopic = `${prefix}connection/status/get`;
+      : ''
+    this.pubTopic = `${prefix}connection/status/get`
 
     // Publish on status change
     if (this.platform.settings.mqtt!.publishStatusChanged) {
       this.platform.service.session.on('connection', () => {
-        this.publishStatus();
-      });
+        this.publishStatus()
+      })
     }
   }
 
   get subscriptionTopics(): string[] {
-    return [];
+    return []
   }
 
   process(topic: string, payload: string): void {
-    this.platform.log.debug(this.constructor.name, 'process', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'process', topic, payload)
   }
 
   async publishTopics(): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'publishTopics');
+    this.platform.log.debug(this.constructor.name, 'publishTopics')
 
     try {
-      this.publishStatus();
+      this.publishStatus()
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }
 
   private publishStatus() {
-    this.platform.log.debug(this.constructor.name, 'publishStatus');
+    this.platform.log.debug(this.constructor.name, 'publishStatus')
 
     if (this.connectionError === this.platform.service.session.hasConnectionError) {
-      return;
+      return
     }
 
-    this.connectionError = this.platform.service.session.hasConnectionError;
+    this.connectionError = this.platform.service.session.hasConnectionError
     const payload: string = this.connectionError
       ? 'error'
-      : 'ok';
+      : 'ok'
 
-    this.publish(this.pubTopic, payload);
+    this.publish(this.pubTopic, payload)
   }
 
   private async publish(topic: string, payload: string): Promise<void> {
-    this.platform.log.debug(this.constructor.name, 'publish', topic, payload);
+    this.platform.log.debug(this.constructor.name, 'publish', topic, payload)
 
     try {
       if (payload === this.topicPayload && !this.platform.settings.mqtt!.publishAll) {
-        return;
+        return
       }
-      this.topicPayload = payload;
-      await this.client.publish(topic, payload, {retain: true});
+      this.topicPayload = payload
+      await this.client.publishAsync(topic, payload, { retain: true })
       if (this.platform.settings.mqtt!.showMqttEvents) {
-        this.platform.log.info(`MQTT: Publish: ${topic}, Payload: ${payload}`);
+        this.platform.log.info(`MQTT: Publish: ${topic}, Payload: ${payload}`)
       }
     } catch (error) {
       if (error instanceof Error) {
-        this.platform.log.error(error.message);
+        this.platform.log.error(error.message)
       }
     }
   }

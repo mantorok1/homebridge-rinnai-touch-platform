@@ -1,8 +1,8 @@
-import { API } from 'homebridge';
+import type { API } from 'homebridge'
 
-import { PLATFORM_NAME } from './settings';
-import { RinnaiTouchPlatform } from './platform'; 
+import { RinnaiTouchPlatform } from './platform.js'
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
-export = (api: API) => {
-  api.registerPlatform(PLATFORM_NAME, RinnaiTouchPlatform);
+export default (api: API) => {
+  api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, RinnaiTouchPlatform)
 }

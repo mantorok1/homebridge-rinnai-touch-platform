@@ -17,27 +17,27 @@ export enum States {
   SetDay,
   SetTime,
   SaveDayAndTime,
-  
+
   ZoneInstalled,
   PowerState,
   FanState,
   FanSpeed,
   PumpState,
   UserEnabled,
-  ControlMode,  // Auto, Manual
+  ControlMode, // Auto, Manual
   SetPointTemperature,
-  ScheduleOverride,  // None, Advance, Operation
+  ScheduleOverride, // None, Advance, Operation
   CallingForHeat,
   CallingForCool,
   CoolerIsBusy,
   AutoEnabled,
   MeasuredTemperature,
-  SchedulePeriod,  // Wake, Leave, Return, Presleep, Sleep  
+  SchedulePeriod, // Wake, Leave, Return, Presleep, Sleep
 }
 
-type StatePath = {
-  group1: string,
-  group2: string,
+interface StatePath {
+  group1: string
+  group2: string
   command: string
 }
 
@@ -48,73 +48,73 @@ export class Status {
     E: 'ECOM',
     R: undefined,
     N: undefined,
-  };
+  }
 
-  private _status: Record<string, Record<string, Record<string, string>>> = {};
-  private _mode?: string;
-  private _hasMultiSetPoint?: boolean;
+  private _status: Record<string, Record<string, Record<string, string>>> = {}
+  private _mode?: string
+  private _hasMultiSetPoint?: boolean
 
   update(status: string) {
-    const json = JSON.parse(status);
-    for(let i = 0; i < json.length; i++) {
-      const key = Object.keys(json[i])[0];
-      this._status[key] = json[i][key];
+    const json = JSON.parse(status)
+    for (let i = 0; i < json.length; i++) {
+      const key = Object.keys(json[i])[0]
+      this._status[key] = json[i][key]
     }
     // Update mode
-    const mode = this.getState(States.OperatingMode);
+    const mode = this.getState(States.OperatingMode)
     if (mode !== undefined && mode !== this.mode?.substring(0, 1)) {
-      this._mode = this.modeMap[mode];
+      this._mode = this.modeMap[mode]
     }
   }
 
   get mode(): string | undefined {
-    return this._mode;
+    return this._mode
   }
 
   get modeEvap(): boolean {
-    return this.mode === this.modeMap['E'];
+    return this.mode === this.modeMap.E
   }
 
-  get hasMultiSetPoint() : boolean {
+  get hasMultiSetPoint(): boolean {
     if (this._hasMultiSetPoint === undefined) {
-      this._hasMultiSetPoint = this.getState(States.HasMultiSetPoint) === 'Y';
+      this._hasMultiSetPoint = this.getState(States.HasMultiSetPoint) === 'Y'
     }
-    return this._hasMultiSetPoint;
+    return this._hasMultiSetPoint
   }
 
   hasStates(states: Record<string, Record<string, Record<string, string>>>): boolean {
-    for(const group1 in states) {
-      for(const group2 in states[group1]) {
-        for(const command in states[group1][group2]) {
-          if (this.getStateByPath({group1: group1, group2: group2, command: command}) !== states[group1][group2][command]) {
-            return false;
+    for (const group1 in states) {
+      for (const group2 in states[group1]) {
+        for (const command in states[group1][group2]) {
+          if (this.getStateByPath({ group1, group2, command }) !== states[group1][group2][command]) {
+            return false
           }
         }
       }
     }
-    return true;
+    return true
   }
 
   toString(): string {
-    return JSON.stringify(this._status);
+    return JSON.stringify(this._status)
   }
 
   getStateByPath(path: StatePath): string | undefined {
-    return this._status[path.group1]?.[path.group2]?.[path.command];
+    return this._status[path.group1]?.[path.group2]?.[path.command]
   }
 
   getState(state: States, zone?: string): string | undefined {
-    const group1 = this.getStateGroup1(state);
-    const group2 = this.getStateGroup2(state, zone);
-    const command = this.getStateCommand(state, zone);
+    const group1 = this.getStateGroup1(state)
+    const group2 = this.getStateGroup2(state, zone)
+    const command = this.getStateCommand(state, zone)
 
     if (group1 !== undefined && group2 !== undefined && command !== undefined) {
-      return this.getStateByPath({group1: group1, group2: group2, command: command});
+      return this.getStateByPath({ group1, group2, command })
     }
   }
 
   getStateGroup1(state: States): string | undefined {
-    switch(state) {
+    switch (state) {
       case States.HasMultiSetPoint:
       case States.TemperatureUnits:
       case States.ZoneName:
@@ -133,138 +133,138 @@ export class Status {
       case States.SetDay:
       case States.SetTime:
       case States.SaveDayAndTime:
-        return 'SYST';
+        return 'SYST'
       default:
-        return this.mode;
+        return this.mode
     }
   }
 
   getStateGroup2(state: States, zone?: string): string | undefined {
-    switch(state) {
+    switch (state) {
       case States.HasMultiSetPoint:
       case States.TemperatureUnits:
       case States.ZoneName:
-        return 'CFG';
+        return 'CFG'
       case States.HasHeater:
       case States.HasCooler:
       case States.HasEvaporative:
-        return 'AVM';
+        return 'AVM'
       case States.Day:
       case States.Time:
       case States.OperatingState:
       case States.OperatingMode:
-        return 'OSS';
+        return 'OSS'
       case States.FaultDetected:
       case States.FaultApplianceType:
       case States.FaultUnit:
       case States.FaultSeverity:
       case States.FaultCode:
-        return 'FLT';
+        return 'FLT'
       case States.SetDay:
       case States.SetTime:
       case States.SaveDayAndTime:
-        return 'STM';
+        return 'STM'
 
       case States.ZoneInstalled:
-        return 'CFG';
+        return 'CFG'
       case States.PowerState:
       case States.FanState:
       case States.FanSpeed:
-        return this.modeEvap ? 'GSO' : 'OOP';
+        return this.modeEvap ? 'GSO' : 'OOP'
       case States.PumpState:
-        return this.modeEvap ? 'GSO' : undefined;
+        return this.modeEvap ? 'GSO' : undefined
       case States.UserEnabled:
-        return this.modeEvap ? 'GSO' : `Z${zone}O`;
+        return this.modeEvap ? 'GSO' : `Z${zone}O`
       case States.ControlMode:
       case States.SetPointTemperature:
         return this.modeEvap
           ? 'GSO'
-          : this.hasMultiSetPoint ? `Z${zone}O` : 'GSO';
+          : this.hasMultiSetPoint ? `Z${zone}O` : 'GSO'
       case States.ScheduleOverride:
         return this.modeEvap
           ? undefined
-          : this.hasMultiSetPoint ? `Z${zone}O` : 'GSO';
+          : this.hasMultiSetPoint ? `Z${zone}O` : 'GSO'
       case States.CallingForHeat:
       case States.CallingForCool:
       case States.CoolerIsBusy:
-        return 'GSS';
+        return 'GSS'
       case States.AutoEnabled:
       case States.MeasuredTemperature:
-        return this.modeEvap ? 'GSS' : `Z${zone}S`;
+        return this.modeEvap ? 'GSS' : `Z${zone}S`
       case States.SchedulePeriod:
         return this.modeEvap
           ? undefined
-          : this.hasMultiSetPoint ? `Z${zone}S` : 'GSS';
+          : this.hasMultiSetPoint ? `Z${zone}S` : 'GSS'
     }
   }
 
   getStateCommand(state: States, zone?: string): string | undefined {
-    switch(state) {
+    switch (state) {
       case States.HasMultiSetPoint:
-        return 'MTSP';
+        return 'MTSP'
       case States.TemperatureUnits:
-        return 'TU';
+        return 'TU'
       case States.ZoneName:
-        return `Z${zone}`;
+        return `Z${zone}`
       case States.HasHeater:
-        return 'HG';
+        return 'HG'
       case States.HasCooler:
-        return 'CG';
+        return 'CG'
       case States.HasEvaporative:
-        return 'EC';
+        return 'EC'
       case States.OperatingState:
-        return 'ST';
+        return 'ST'
       case States.OperatingMode:
-        return 'MD';
+        return 'MD'
       case States.FaultDetected:
-        return 'AV';
+        return 'AV'
       case States.FaultApplianceType:
-        return 'GP';
+        return 'GP'
       case States.FaultUnit:
-        return 'UT';
+        return 'UT'
       case States.FaultSeverity:
-        return 'TP';
+        return 'TP'
       case States.FaultCode:
-        return 'CD';
+        return 'CD'
       case States.Day:
       case States.SetDay:
-        return 'DY';
+        return 'DY'
       case States.Time:
       case States.SetTime:
-        return 'TM';
+        return 'TM'
       case States.SaveDayAndTime:
-        return 'SV';
+        return 'SV'
 
       case States.ZoneInstalled:
-        return `Z${zone}IS`;
+        return `Z${zone}IS`
       case States.PowerState:
-        return this.modeEvap ? 'SW' : 'ST';
+        return this.modeEvap ? 'SW' : 'ST'
       case States.FanState:
-        return this.modeEvap ? 'FS' : 'ST';
+        return this.modeEvap ? 'FS' : 'ST'
       case States.FanSpeed:
-        return 'FL';
+        return 'FL'
       case States.PumpState:
-        return this.modeEvap ? 'PS' : undefined;
+        return this.modeEvap ? 'PS' : undefined
       case States.UserEnabled:
-        return this.modeEvap ? `Z${zone}UE` : 'UE';
+        return this.modeEvap ? `Z${zone}UE` : 'UE'
       case States.ControlMode:
-        return 'OP';
+        return 'OP'
       case States.SetPointTemperature:
-        return 'SP';
+        return 'SP'
       case States.ScheduleOverride:
-        return this.modeEvap ? undefined : 'AO';
+        return this.modeEvap ? undefined : 'AO'
       case States.CallingForHeat:
-        return 'HC';
+        return 'HC'
       case States.CallingForCool:
-        return 'CC';
+        return 'CC'
       case States.CoolerIsBusy:
-        return 'BY';
+        return 'BY'
       case States.AutoEnabled:
-        return this.modeEvap ? `Z${zone}AE` : 'AE';
+        return this.modeEvap ? `Z${zone}AE` : 'AE'
       case States.MeasuredTemperature:
-        return 'MT';
+        return 'MT'
       case States.SchedulePeriod:
-        return this.modeEvap ? undefined : 'AT';
+        return this.modeEvap ? undefined : 'AT'
     }
   }
 }

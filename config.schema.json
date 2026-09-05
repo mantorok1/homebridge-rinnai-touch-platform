@@ -30,9 +30,9 @@
         "type": "string",
         "required": true,
         "default": "T",
-        "oneOf":  [
-          { "title": "Thermostat", "enum": [ "T" ] },
-          { "title": "Heater Cooler", "enum": [ "H" ] }
+        "oneOf": [
+          { "title": "Thermostat", "enum": ["T"] },
+          { "title": "Heater Cooler", "enum": ["H"] }
         ]
       },
       "zoneType": {
@@ -41,10 +41,10 @@
         "type": "string",
         "required": true,
         "default": "S",
-        "oneOf":  [
-          { "title": "None", "enum": [ "N" ] },
-          { "title": "Switch", "enum": [ "S" ] },
-          { "title": "Heater Cooler", "enum": [ "H" ] }
+        "oneOf": [
+          { "title": "None", "enum": ["N"] },
+          { "title": "Switch", "enum": ["S"] },
+          { "title": "Heater Cooler", "enum": ["H"] }
         ]
       },
       "showFan": {
@@ -106,13 +106,13 @@
         "type": "boolean",
         "default": true,
         "required": false
-      },  
+      },
       "showModuleStatus": {
         "title": "Show Rinnai Touch Module status in the log",
         "type": "boolean",
         "default": false,
         "required": false
-      },  
+      },
       "clearCache": {
         "title": "Clear plugin's accessory cache",
         "type": "boolean",
@@ -177,7 +177,7 @@
           "formatFault": {
             "title": "Fault Status",
             "type": "boolean"
-          },          
+          },
           "publishStatusChanged": {
             "title": "When status has changed",
             "type": "boolean"
@@ -195,14 +195,14 @@
           },
           "publishAll": {
             "title": "Publish all topics even if payload has not changed",
-            "type": "boolean"              
+            "type": "boolean"
           },
           "showMqttEvents": {
             "title": "Show MQTT events in the log",
             "type": "boolean",
             "default": true,
             "required": false
-          }, 
+          },
           "subscribeTemperature": {
             "type": "object",
             "properties": {
@@ -303,7 +303,7 @@
     {
       "type": "flex",
       "flex-flow": "row wrap",
-      "items": [ "address", "port" ] 
+      "items": ["address", "port"]
     },
     {
       "type": "fieldset",
@@ -314,7 +314,7 @@
         {
           "type": "flex",
           "flex-flow": "row wrap",
-          "items": [ "controllerType", "zoneType" ]          
+          "items": ["controllerType", "zoneType"]
         },
         "showFan",
         "showAuto",
@@ -343,17 +343,17 @@
         {
           "type": "flex",
           "flex-flow": "row wrap",
-          "items": [ "mqtt.host", "mqtt.port" ] 
+          "items": ["mqtt.host", "mqtt.port"]
         },
         {
           "type": "flex",
           "flex-flow": "row wrap",
-          "items": [ "mqtt.username", "mqtt.password" ] 
+          "items": ["mqtt.username", "mqtt.password"]
         },
         {
           "type": "flex",
           "flex-flow": "row wrap",
-          "items": [ "mqtt.topicPrefix" ] 
+          "items": ["mqtt.topicPrefix"]
         },
         {
           "type": "section",
@@ -388,27 +388,27 @@
             {
               "type": "flex",
               "flex-flow": "row wrap",
-              "items": [ "mqtt.subscribeTemperature.U", "mqtt.subscribeTemperature.jsonPathU" ] 
+              "items": ["mqtt.subscribeTemperature.U", "mqtt.subscribeTemperature.jsonPathU"]
             },
             {
               "type": "flex",
               "flex-flow": "row wrap",
-              "items": [ "mqtt.subscribeTemperature.A", "mqtt.subscribeTemperature.jsonPathA" ] 
+              "items": ["mqtt.subscribeTemperature.A", "mqtt.subscribeTemperature.jsonPathA"]
             },
             {
               "type": "flex",
               "flex-flow": "row wrap",
-              "items": [ "mqtt.subscribeTemperature.B", "mqtt.subscribeTemperature.jsonPathB" ] 
+              "items": ["mqtt.subscribeTemperature.B", "mqtt.subscribeTemperature.jsonPathB"]
             },
             {
               "type": "flex",
               "flex-flow": "row wrap",
-              "items": [ "mqtt.subscribeTemperature.C", "mqtt.subscribeTemperature.jsonPathC" ] 
+              "items": ["mqtt.subscribeTemperature.C", "mqtt.subscribeTemperature.jsonPathC"]
             },
             {
               "type": "flex",
               "flex-flow": "row wrap",
-              "items": [ "mqtt.subscribeTemperature.D", "mqtt.subscribeTemperature.jsonPathD" ] 
+              "items": ["mqtt.subscribeTemperature.D", "mqtt.subscribeTemperature.jsonPathD"]
             }
           ]
         }
@@ -429,7 +429,7 @@
             {
               "type": "flex",
               "flex-row": "row wrap",
-              "items": [ "pushover.users[]" ]
+              "items": ["pushover.users[]"]
             }
           ]
         },
@@ -455,7 +455,7 @@
         {
           "type": "flex",
           "flex-flow": "row wrap",
-          "items": [ "bootTime", "bootPassword" ] 
+          "items": ["bootTime", "bootPassword"]
         }
       ]
     }

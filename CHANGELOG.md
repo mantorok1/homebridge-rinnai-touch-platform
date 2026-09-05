@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+# 3.5.0 (2026-09-05)
+
+* Add support for Matter protocol (Beta)
+* Remove support for Homebridge 1.x
+* Remove support for Node 20.x
+* Migrate plugin to use ECMAScript Modules (ESM)
+* Update dependencies, some of which had vulnerabilities
+
 # 3.4.18 (2026-04-11)
 
 * [FIX] Wait for controller to enter "Normal" state before starting configuration ([#14](https://github.com/mantorok1/homebridge-rinnai-touch-platform/issues/14))
